@@ -183,12 +183,31 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
 .modal textarea{width:100%;border:1.5px solid var(--b);border-radius:9px;padding:10px 12px;font-size:12px;font-family:"Noto Sans KR",sans-serif;outline:none;margin-bottom:12px;resize:vertical;transition:border-color .2s;}
 .modal textarea:focus{border-color:var(--p);}
 
+/* MEMBER PROFILES */
+.profiles-row{max-width:1100px;margin:0 auto;padding:14px 20px 0;display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;}
+.profiles-row::-webkit-scrollbar{display:none;}
+.profile-card{flex-shrink:0;background:white;border-radius:14px;border:1px solid var(--b);padding:14px 16px;min-width:155px;max-width:155px;position:relative;}
+.profile-card.me{border-color:var(--p);box-shadow:0 0 0 2px rgba(241,60,144,.15);}
+.pc-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:white;margin-bottom:8px;}
+.pc-name{font-size:13px;font-weight:800;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pc-since{font-size:9px;color:var(--m);font-weight:600;margin-bottom:6px;}
+.pc-goal{font-size:10px;color:#555;line-height:1.5;min-height:14px;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.pc-stat{font-size:10px;color:var(--m);}
+.pc-stat span{font-family:"Nunito",sans-serif;font-weight:900;color:var(--p);font-size:12px;}
+.pc-badges{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px;}
+.badge{display:inline-flex;align-items:center;gap:2px;border-radius:99px;padding:2px 7px;font-size:9px;font-weight:700;white-space:nowrap;}
+.badge-admin{background:#1A1A1A;color:white;}
+.badge-chat{background:linear-gradient(135deg,#F13C90,#FF6BB0);color:white;}
+.badge-cert{background:linear-gradient(135deg,#6BCB77,#14B8A6);color:white;}
+.badge-custom{background:var(--pl);color:var(--p);border:1px solid var(--pb);}
+
 @media(max-width:768px){
   .wrap{grid-template-columns:1fr;}
   header{padding:0 16px;}
   .wrap{padding:14px;}
   .banner{flex-direction:column;gap:12px;align-items:flex-start;}
   .week-grid{gap:3px;}
+  .profiles-row{padding:10px 14px 0;}
 }
 </style>
 </head>
@@ -213,6 +232,39 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
     <span onclick="switchAccount()" style="font-size:11px;color:var(--m);cursor:pointer;text-decoration:underline;">계정 전환</span>
   </div>
 </header>
+
+<!-- MEMBER PROFILES ROW -->
+<div class="profiles-row" id="profiles-row"></div>
+
+<!-- PROFILE DETAIL MODAL -->
+<div class="overlay" id="profile-modal">
+  <div class="modal" style="max-width:340px;">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+      <div id="pm-av" style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:white;flex-shrink:0;"></div>
+      <div>
+        <div id="pm-name" style="font-size:17px;font-weight:900;margin-bottom:3px;"></div>
+        <div id="pm-since" style="font-size:10px;color:var(--m);font-weight:600;"></div>
+        <div id="pm-badges" style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;"></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+      <div style="background:var(--pl);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--pb);">
+        <div id="pm-cert-cnt" style="font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;color:var(--p);line-height:1;"></div>
+        <div style="font-size:10px;color:var(--m);margin-top:2px;">이번달 인증</div>
+      </div>
+      <div style="background:var(--pl);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--pb);">
+        <div id="pm-streak" style="font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;color:var(--p);line-height:1;"></div>
+        <div style="font-size:10px;color:var(--m);margin-top:2px;">연속 인증</div>
+      </div>
+    </div>
+    <div style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:14px;">
+      <div style="font-size:10px;font-weight:700;color:var(--m);margin-bottom:5px;">🎯 이달의 목표</div>
+      <div id="pm-goal" style="font-size:13px;color:var(--t);line-height:1.6;"></div>
+      <div id="pm-goal-status" style="margin-top:6px;font-size:11px;font-weight:700;"></div>
+    </div>
+    <button class="btn-go" onclick="closeProfileModal()" style="width:100%;">닫기</button>
+  </div>
+</div>
 
 <div class="wrap">
   <!-- LEFT -->
@@ -475,6 +527,8 @@ function changeNick(){
 let allScheds = {};
 let allChatCounts = {};
 let allGoals = {};
+let allMembers = {};
+let allBadges = {};
 
 function startDashboard(){
   const now=new Date();
@@ -514,6 +568,21 @@ function startDashboard(){
   db.ref('wcl/goals/'+mkey(new Date())).on('value',snap=>{
     allGoals=snap.val()||{};
     renderGoals();
+    renderProfiles();
+  });
+
+  db.ref('wcl/members').on('value',snap=>{
+    allMembers=snap.val()||{};
+    renderProfiles();
+    // 내 입단일 자동 기록
+    if(!allMembers[ME]){
+      db.ref('wcl/members/'+ME).set({joinedAt:Date.now()});
+    }
+  });
+
+  db.ref('wcl/badges').on('value',snap=>{
+    allBadges=snap.val()||{};
+    renderProfiles();
   });
 }
 
@@ -814,6 +883,106 @@ function renderLB(){
     list.appendChild(el);
   });
 }
+
+// ── MEMBER PROFILES ──
+function renderProfiles(){
+  const mk=mkey(new Date());
+  // 이번달 인증 횟수
+  const certCounts={};
+  Object.entries(allCerts).forEach(([k,dc])=>{
+    if(!k.startsWith(mk))return;
+    Object.keys(dc).forEach(n=>{certCounts[n]=(certCounts[n]||0)+1;});
+  });
+
+  // 멤버 목록: 인증자 + 소통왕 + 목표 등록자 + 입단 멤버 모두 합치기
+  const nameSet=new Set([
+    ...Object.keys(certCounts),
+    ...Object.keys(allChatCounts),
+    ...Object.keys(allGoals),
+    ...Object.keys(allMembers),
+  ]);
+  if(ME) nameSet.add(ME);
+
+  // 본인 먼저, 나머지는 인증 수 순
+  const names=[...nameSet].sort((a,b)=>{
+    if(a===ME)return -1;if(b===ME)return 1;
+    return (certCounts[b]||0)-(certCounts[a]||0);
+  });
+
+  const row=document.getElementById('profiles-row');
+  row.innerHTML='';
+  names.forEach(n=>{
+    const cnt=certCounts[n]||0;
+    const goal=allGoals[n];
+    const badges=allBadges[n]||[];
+    const member=allMembers[n];
+    const joinedStr=member?.joinedAt
+      ? new Date(member.joinedAt).toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\. /g,'.').replace('.','').slice(0,-1)
+      : '';
+
+    const card=document.createElement('div');
+    card.className='profile-card'+(n===ME?' me':'');
+    card.style.cursor='pointer';
+
+    // 뱃지 HTML
+    const badgeHTML=badges.map(b=>{
+      if(b.type==='admin') return '<span class="badge badge-admin">'+b.label+'</span>';
+      if(b.type==='chat')  return '<span class="badge badge-chat">'+b.label+'</span>';
+      if(b.type==='cert')  return '<span class="badge badge-cert">'+b.label+'</span>';
+      return '<span class="badge badge-custom">'+b.label+'</span>';
+    }).join('');
+
+    card.innerHTML=
+      '<div class="pc-av" style="background:'+gc(n)+'">'+n.charAt(0)+'</div>'+
+      '<div class="pc-name">'+n+(n===ME?' <span style="font-size:9px;color:var(--p);">나</span>':'')+'</div>'+
+      '<div class="pc-since">WCL since 2026.07.13</div>'+
+      (goal?'<div class="pc-goal">🎯 '+goal.goal+'</div>':'<div class="pc-goal" style="color:var(--m);">목표 미등록</div>')+
+      '<div class="pc-stat">이번달 <span>'+cnt+'</span>회 인증</div>'+
+      (badgeHTML?'<div class="pc-badges">'+badgeHTML+'</div>':'');
+
+    card.onclick=()=>openProfileModal(n,certCounts);
+    row.appendChild(card);
+  });
+}
+
+function openProfileModal(n, certCounts){
+  const mk=mkey(new Date());
+  const cnt=(certCounts||{})[n];
+  // 실시간 카운트 계산
+  let count=cnt;
+  if(count===undefined){
+    count=0;
+    Object.entries(allCerts).forEach(([k,dc])=>{if(k.startsWith(mk)&&dc[n])count++;});
+  }
+  // 연속 인증
+  let streak=0,d=new Date();
+  while(true){const k=dk(d);if((allCerts[k]||{})[n]){streak++;d.setDate(d.getDate()-1);}else break;}
+
+  const badges=allBadges[n]||[];
+  const goal=allGoals[n];
+  const color=gc(n);
+
+  document.getElementById('pm-av').style.background=color;
+  document.getElementById('pm-av').textContent=n.charAt(0);
+  document.getElementById('pm-name').textContent=n;
+  document.getElementById('pm-since').textContent='WCL since 2026.07.13';
+  document.getElementById('pm-cert-cnt').textContent=count;
+  document.getElementById('pm-streak').textContent=streak+'일';
+  document.getElementById('pm-badges').innerHTML=badges.map(b=>{
+    if(b.type==='admin') return '<span class="badge badge-admin">'+b.label+'</span>';
+    if(b.type==='chat')  return '<span class="badge badge-chat">'+b.label+'</span>';
+    if(b.type==='cert')  return '<span class="badge badge-cert">'+b.label+'</span>';
+    return '<span class="badge badge-custom">'+b.label+'</span>';
+  }).join('');
+  document.getElementById('pm-goal').textContent=goal?.goal||'아직 이번달 목표를 등록하지 않았어요.';
+  const statusEl=document.getElementById('pm-goal-status');
+  if(goal?.achieved) statusEl.innerHTML='<span style="color:#22C55E;">✅ 달성 완료!</span>';
+  else if(goal) statusEl.innerHTML='<span style="color:var(--p);">🔥 도전 중</span>';
+  else statusEl.innerHTML='';
+
+  document.getElementById('profile-modal').classList.add('open');
+}
+function closeProfileModal(){document.getElementById('profile-modal').classList.remove('open');}
 
 // ── CHAT KING ──
 function renderChatRank(){
