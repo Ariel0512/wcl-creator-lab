@@ -946,7 +946,7 @@ function renderLB(){
 
   const medals=['🥇','🥈','🥉'];
   list.innerHTML='';
-  sorted.forEach(([n,cnt],i)=>{
+  sorted.slice(0,5).forEach(([n,cnt],i)=>{
     const el=document.createElement('div');el.className='lb-item';
     el.style.cursor='pointer';
     el.innerHTML='<div class="lb-rank">'+(medals[i]||(i+1))+'</div>'+
