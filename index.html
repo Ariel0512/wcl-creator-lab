@@ -184,16 +184,16 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
 .modal textarea:focus{border-color:var(--p);}
 
 /* MEMBER PROFILES */
-.profiles-row{max-width:1100px;margin:0 auto;padding:14px 20px 0;display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;}
-.profiles-row::-webkit-scrollbar{display:none;}
-.profile-card{flex-shrink:0;background:white;border-radius:14px;border:1px solid var(--b);padding:14px 16px;min-width:155px;max-width:155px;position:relative;}
+.profiles-row{max-width:1100px;margin:0 auto;padding:14px 20px 0;}
+.profile-card{flex-shrink:0;background:white;border-radius:14px;border:1px solid var(--b);padding:14px 20px;width:100%;display:flex;align-items:center;gap:16px;position:relative;}
 .profile-card.me{border-color:var(--p);box-shadow:0 0 0 2px rgba(241,60,144,.15);}
-.pc-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:white;margin-bottom:8px;}
-.pc-name{font-size:13px;font-weight:800;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pc-since{font-size:9px;color:var(--m);font-weight:600;margin-bottom:6px;}
-.pc-goal{font-size:10px;color:#555;line-height:1.5;min-height:14px;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.pc-stat{font-size:10px;color:var(--m);}
-.pc-stat span{font-family:"Nunito",sans-serif;font-weight:900;color:var(--p);font-size:12px;}
+.pc-av{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:white;flex-shrink:0;}
+.pc-info{flex:1;min-width:0;}
+.pc-name{font-size:15px;font-weight:800;margin-bottom:1px;}
+.pc-since{font-size:9px;color:var(--m);font-weight:600;margin-bottom:5px;}
+.pc-goal{font-size:11px;color:#555;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pc-stat{font-size:11px;color:var(--m);margin-top:4px;}
+.pc-stat span{font-family:"Nunito",sans-serif;font-weight:900;color:var(--p);font-size:13px;}
 .pc-badges{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px;}
 .badge{display:inline-flex;align-items:center;gap:2px;border-radius:99px;padding:2px 7px;font-size:9px;font-weight:700;white-space:nowrap;}
 .badge-admin{background:#1A1A1A;color:white;}
@@ -671,8 +671,8 @@ function showDayPanel(key,d,updateSel=true){
     const el=document.createElement('div');el.className='tp-item';
     el.innerHTML=
       '<div class="ti-name">'+
-        '<span style="width:22px;height:22px;border-radius:50%;background:'+gc(n)+';display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:white;font-weight:800;flex-shrink:0;">'+n.charAt(0)+'</span>'+
-        '<span>'+n+'</span>'+
+        '<span onclick="openProfileModal(\''+n+'\',null)" style="width:22px;height:22px;border-radius:50%;background:'+gc(n)+';display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:white;font-weight:800;flex-shrink:0;cursor:pointer;" title="'+n+' 프로필 보기">'+n.charAt(0)+'</span>'+
+        '<span onclick="openProfileModal(\''+n+'\',null)" style="cursor:pointer;">'+n+'</span>'+
         '<span class="ti-time">'+(c.time||'')+'</span>'+
         (isMe?'<button onclick="openEditCertModal(\''+key+'\')" style="margin-left:auto;background:transparent;border:1px solid var(--b);border-radius:6px;padding:2px 8px;font-size:10px;color:var(--m);cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">수정</button>':'')+
       '</div>'+
@@ -875,11 +875,13 @@ function renderLB(){
   list.innerHTML='';
   sorted.forEach(([n,cnt],i)=>{
     const el=document.createElement('div');el.className='lb-item';
+    el.style.cursor='pointer';
     el.innerHTML='<div class="lb-rank">'+(medals[i]||(i+1))+'</div>'+
       '<div class="lb-av" style="background:'+gc(n)+'">'+n.charAt(0)+'</div>'+
       '<div class="lb-name">'+n+'</div>'+
       (streaks[n]>0?'<div class="lb-str">🔥'+streaks[n]+'일</div>':'')+
       '<div class="lb-cnt"><div class="n">'+cnt+'</div><div class="s">회</div></div>';
+    el.onclick=()=>openProfileModal(n,null);
     list.appendChild(el);
   });
 }
@@ -907,11 +909,13 @@ function renderProfiles(){
   card.style.cursor='pointer';
   card.innerHTML=
     '<div class="pc-av" style="background:'+gc(ME)+'">'+ME.charAt(0)+'</div>'+
-    '<div class="pc-name">'+ME+'</div>'+
-    '<div class="pc-since">WCL since 2026.07.13</div>'+
-    (goal?'<div class="pc-goal">🎯 '+goal.goal+'</div>':'<div class="pc-goal" style="color:var(--m);">목표를 등록해보세요!</div>')+
-    '<div class="pc-stat">이번달 <span>'+cnt+'</span>회 인증</div>'+
-    (badgeHTML?'<div class="pc-badges">'+badgeHTML+'</div>':'');
+    '<div class="pc-info">'+
+      '<div class="pc-name">'+ME+'</div>'+
+      '<div class="pc-since">WCL since 2026.07.13</div>'+
+      (goal?'<div class="pc-goal">🎯 '+goal.goal+'</div>':'<div class="pc-goal" style="color:var(--m);">목표를 등록해보세요!</div>')+
+      '<div class="pc-stat">이번달 <span>'+cnt+'</span>회 인증</div>'+
+      (badgeHTML?'<div class="pc-badges" style="margin-top:5px;">'+badgeHTML+'</div>':'')+
+    '</div>';
   card.onclick=()=>openProfileModal(ME,null);
   row.appendChild(card);
 }
@@ -968,12 +972,14 @@ function renderChatRank(){
   list.innerHTML='';
   entries.forEach(([n,cnt],i)=>{
     const el=document.createElement('div');el.className='ck-item';
+    el.style.cursor='pointer';
     el.innerHTML=
       '<div class="ck-rank">'+(i===0?'<span class="ck-crown">👑</span>':(medals[i]||(i+1)))+'</div>'+
       '<div class="ck-av" style="background:'+gc(n)+'">'+n.charAt(0)+'</div>'+
       '<div class="ck-name">'+n+'</div>'+
       '<div class="ck-bar-wrap"><div class="ck-bar" style="width:'+(cnt/max*100).toFixed(0)+'%"></div></div>'+
       '<div class="ck-cnt">'+cnt+'</div>';
+    el.onclick=()=>openProfileModal(n,null);
     list.appendChild(el);
   });
 }
@@ -1029,7 +1035,7 @@ function renderGoals(){
       :'<span class="goal-badge-ing">진행중</span>';
     el.innerHTML=
       '<div class="goal-header">'+
-        '<div class="goal-name"><div class="goal-av" style="background:'+gc(n)+'">'+n.charAt(0)+'</div>'+n+'</div>'+
+        '<div class="goal-name"><div class="goal-av" style="background:'+gc(n)+';cursor:pointer;" onclick="openProfileModal(\''+n+'\',null)">'+n.charAt(0)+'</div><span style="cursor:pointer;" onclick="openProfileModal(\''+n+'\',null)">'+n+'</span></div>'+
         badge+
       '</div>'+
       '<div class="goal-text">'+g.goal+'</div>'+
