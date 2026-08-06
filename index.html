@@ -172,7 +172,7 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
 
 /* GOAL QUOTE */
 .goal-quote{background:var(--pl);border-left:4px solid var(--p);border-radius:0 10px 10px 0;padding:14px 16px;margin-bottom:10px;}
-.goal-quote-text{font-size:16px;font-weight:800;color:var(--t);line-height:1.5;}
+.goal-quote-text{font-size:20px;font-weight:900;color:var(--t);line-height:1.5;font-family:"Nunito",sans-serif;}
 .goal-quote::before{content:'"';font-size:28px;font-family:"Nunito",sans-serif;color:var(--p);line-height:0;vertical-align:-10px;margin-right:3px;}
 .goal-quote::after{content:'"';font-size:28px;font-family:"Nunito",sans-serif;color:var(--p);line-height:0;vertical-align:-10px;margin-left:3px;}
 
@@ -600,6 +600,7 @@ let allChatCounts = {};
 let allGoals = {};
 let allMembers = {};
 let allBadges = {};
+let allMemberList = [];
 
 function startDashboard(){
   const now=new Date();
@@ -657,6 +658,10 @@ function startDashboard(){
   db.ref('wcl/badges').on('value',snap=>{
     allBadges=snap.val()||{};
     renderProfiles();
+  });
+
+  db.ref('wcl/memberlist').on('value',snap=>{
+    allMemberList=snap.val()||[];
   });
 }
 
@@ -992,8 +997,8 @@ function renderProfiles(){
   card.innerHTML=
     '<div class="pc-av" style="background:'+avColor(ME)+'">'+avContent(ME)+'</div>'+
     '<div class="pc-info">'+
-      '<div class="pc-name">'+ME+'</div>'+
-      '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:4px;">'+
+      '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:3px;">'+
+        '<span class="pc-name">'+ME+'</span>'+
         (badgeHTML?badgeHTML:'')+
         '<span style="font-size:9px;color:var(--m);font-weight:600;">'+joinedStr+'</span>'+
       '</div>'+
@@ -1090,8 +1095,9 @@ function renderMemberList(){
     Object.keys(dc).forEach(n=>{certCounts[n]=(certCounts[n]||0)+1;});
   });
 
-  // 전체 멤버: members + cert + chat + goal 합산
+  // 전체 멤버: memberlist 기준 + 활동 멤버 합산
   const nameSet=new Set([
+    ...allMemberList,
     ...Object.keys(allMembers),
     ...Object.keys(certCounts),
     ...Object.keys(allChatCounts),
