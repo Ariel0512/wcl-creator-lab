@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WCL 크리에이터 랩</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Nunito:wght@800;900&display=swap" rel="stylesheet">
+<style>
+:root{--p:#F13C90;--p2:#FF6BB0;--pl:#FFF0F7;--pb:#FFD6EC;--w:#fff;--bg:#FDF9FB;--t:#1A1A1A;--m:#888;--b:#F0E6EE;--g:#22C55E;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Noto Sans KR",sans-serif;background:var(--bg);color:var(--t);-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
+
+/* NICK MODAL */
+#nick-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;padding:20px;}
+#nick-modal.show{display:flex;}
+#nick-modal{display:none;}
+.nm-card{background:white;border-radius:20px;padding:36px;max-width:380px;width:100%;text-align:center;}
+.nm-card h2{font-family:"Nunito",sans-serif;font-size:22px;font-weight:900;margin-bottom:8px;}
+.nm-card p{font-size:13px;color:var(--m);line-height:1.7;margin-bottom:22px;}
+.nm-card input{width:100%;border:1.5px solid var(--b);border-radius:10px;padding:12px;font-size:15px;font-family:"Noto Sans KR",sans-serif;outline:none;text-align:center;transition:border-color .2s;margin-bottom:10px;}
+.nm-card input:focus{border-color:var(--p);}
+.nm-card button{width:100%;background:var(--p);color:white;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:"Noto Sans KR",sans-serif;}
+.nm-card button:hover{background:#D4308A;}
+
+/* HEADER */
+header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo{font-family:"Nunito",sans-serif;font-size:16px;font-weight:900;color:var(--p);}
+.logo span{color:var(--t);font-size:11px;font-weight:600;margin-left:6px;}
+.hdr-r{display:flex;align-items:center;gap:10px;}
+.user-chip{background:var(--pl);border:1px solid var(--pb);border-radius:99px;padding:5px 14px;font-size:12px;font-weight:700;color:var(--p);cursor:pointer;user-select:none;}
+.date-txt{font-size:12px;color:var(--m);font-weight:600;}
+
+/* LAYOUT */
+.wrap{max-width:1100px;margin:0 auto;padding:20px;display:grid;grid-template-columns:1fr 292px;gap:16px;}
+
+/* CARD */
+.card{background:white;border-radius:14px;padding:18px;border:1px solid var(--b);}
+.ctitle{font-size:10px;font-weight:700;color:var(--m);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;}
+
+/* CERT BANNER */
+.banner{background:linear-gradient(135deg,var(--p),var(--p2));border-radius:14px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;color:white;}
+.banner h2{font-family:"Nunito",sans-serif;font-size:19px;font-weight:900;margin-bottom:2px;}
+.banner p{font-size:12px;opacity:.85;}
+.btn-cert{background:white;color:var(--p);border:none;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:800;cursor:pointer;font-family:"Noto Sans KR",sans-serif;white-space:nowrap;transition:transform .15s;}
+.btn-cert:hover{transform:translateY(-2px);}
+.cert-done{background:rgba(255,255,255,.2);border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;}
+
+/* WEEKLY */
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.week-day{border-radius:10px;padding:10px 4px;text-align:center;border:1.5px solid var(--b);transition:all .2s;cursor:pointer;}
+.week-day:hover{border-color:var(--pb);background:var(--pl);}
+.week-day.today{border-color:var(--p);background:var(--pl);}
+.week-day.today .wd-name{color:var(--p);}
+.week-day.selected{border-color:var(--p);background:var(--pl);}
+.week-day.selected .wd-cnt{color:var(--p);}
+.wd-name{font-size:10px;font-weight:700;color:var(--m);margin-bottom:4px;}
+.wd-date{font-size:13px;font-weight:900;margin-bottom:6px;}
+.wd-cnt{font-size:18px;font-weight:900;font-family:"Nunito",sans-serif;color:var(--p);line-height:1;}
+.wd-cnt.zero{color:var(--b);}
+.wd-label{font-size:9px;color:var(--m);margin-top:2px;}
+
+/* WHO CERTIFIED TODAY */
+.today-panel{display:none;background:var(--pl);border:1.5px solid var(--pb);border-radius:10px;padding:14px;margin-top:12px;}
+.today-panel.open{display:block;}
+.today-panel h4{font-size:12px;font-weight:700;margin-bottom:8px;color:var(--t);}
+.tp-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.tp-chip{display:flex;align-items:center;gap:6px;background:white;border:1px solid var(--b);border-radius:99px;padding:5px 12px;font-size:12px;font-weight:700;}
+.tp-av{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:white;flex-shrink:0;}
+.tp-detail{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+.tp-item{background:white;border-radius:8px;padding:9px 12px;border:1px solid var(--b);font-size:12px;}
+.tp-item .ti-name{font-weight:700;display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+.tp-item .ti-time{font-size:10px;color:var(--m);}
+.tp-item .ti-memo{color:#555;margin-top:3px;line-height:1.6;}
+.tp-item .ti-link{display:inline-flex;align-items:center;gap:5px;background:var(--p);color:white;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;margin-top:6px;transition:background .2s;}
+.tp-item .ti-link:hover{background:#D4308A;}
+
+/* PERSONAL CALENDAR */
+.cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.cal-hdr h3{font-family:"Nunito",sans-serif;font-size:16px;font-weight:900;}
+.cal-nav{display:flex;gap:4px;}
+.cal-nav button{background:var(--pl);border:1px solid var(--pb);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--p);font-weight:700;transition:all .2s;}
+.cal-nav button:hover{background:var(--p);color:white;}
+.cal-stat{display:flex;gap:10px;margin-bottom:12px;}
+.cs-item{flex:1;background:var(--pl);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--pb);}
+.cs-num{font-family:"Nunito",sans-serif;font-size:24px;font-weight:900;color:var(--p);line-height:1;}
+.cs-lbl{font-size:10px;color:var(--m);margin-top:3px;}
+.dow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:3px;}
+.dow span{text-align:center;font-size:9px;font-weight:700;color:var(--m);padding:2px 0;}
+.pgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.pday{border-radius:8px;min-height:38px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:1.5px solid transparent;transition:all .2s;padding:3px 2px;}
+.pday.empty{opacity:0;pointer-events:none;}
+.pday.other{color:#ddd;border-color:transparent;background:transparent;}
+.pday.done{background:var(--p);color:white;border-color:var(--p);}
+.pday.today-no{border:1.5px solid var(--p);color:var(--p);}
+.pday.today-done{background:var(--p);color:white;border-color:var(--p);box-shadow:0 0 0 3px rgba(241,60,144,.25);}
+.pday.missed{background:#f5f5f5;color:#bbb;}
+.check-mark{font-size:8px;margin-top:1px;}
+
+/* LEADERBOARD */
+.lb-item{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:10px;border:1px solid var(--b);margin-bottom:6px;}
+.lb-rank{font-family:"Nunito",sans-serif;font-size:14px;font-weight:900;width:24px;text-align:center;flex-shrink:0;}
+.lb-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;}
+.lb-name{font-size:13px;font-weight:700;flex:1;}
+.lb-str{background:var(--pl);border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;color:var(--p);white-space:nowrap;}
+.lb-cnt .n{font-family:"Nunito",sans-serif;font-size:15px;font-weight:900;color:var(--p);}
+.lb-cnt .s{font-size:9px;color:var(--m);}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
+.overlay.open{display:flex;}
+.modal{background:white;border-radius:18px;padding:26px;max-width:400px;width:100%;}
+.modal h3{font-family:"Nunito",sans-serif;font-size:19px;font-weight:900;margin-bottom:16px;}
+.modal label{display:block;font-size:11px;font-weight:700;color:var(--m);margin-bottom:5px;}
+.modal input{width:100%;border:1.5px solid var(--b);border-radius:9px;padding:10px 12px;font-size:14px;font-family:"Noto Sans KR",sans-serif;outline:none;margin-bottom:12px;transition:border-color .2s;}
+.modal input:focus{border-color:var(--p);}
+.mbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.btn-cancel{background:var(--bg);color:var(--m);border:1px solid var(--b);border-radius:9px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:"Noto Sans KR",sans-serif;}
+.btn-go{background:var(--p);color:white;border:none;border-radius:9px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:"Noto Sans KR",sans-serif;}
+.btn-go:hover{background:#D4308A;}
+
+/* COMMUNITY FEED */
+.cf-item{display:flex;gap:10px;padding:12px;background:var(--pl);border-radius:10px;border:1px solid var(--pb);margin-bottom:8px;}
+.cf-item:last-child{margin-bottom:0;}
+.cf-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:white;flex-shrink:0;}
+.cf-body{flex:1;min-width:0;}
+.cf-name{font-size:13px;font-weight:700;}
+.cf-time{font-size:10px;color:var(--m);margin-left:6px;}
+.cf-memo{font-size:12px;color:#555;margin-top:4px;line-height:1.65;}
+.cf-link{display:inline-flex;align-items:center;gap:5px;background:white;border:1.5px solid var(--pb);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;color:var(--p);margin-top:6px;transition:background .2s;}
+.cf-link:hover{background:var(--p);color:white;}
+.cf-scroll{max-height:320px;overflow-y:auto;}
+
+/* SCHEDULE BADGES */
+.sched-badge{display:flex;align-items:center;gap:3px;border-radius:4px;padding:2px 5px;font-size:9px;font-weight:700;margin-top:2px;color:white;width:100%;}
+.sb-offline{background:#FF7043;}
+.sb-zoom{background:#4D96FF;}
+.sb-etc{background:#888;}
+.pday-wrap{position:relative;}
+.day-sched-dot{position:absolute;top:2px;right:2px;width:6px;height:6px;border-radius:50%;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1A1A1A;color:white;padding:11px 22px;border-radius:99px;font-size:13px;font-weight:700;transition:transform .3s;z-index:999;pointer-events:none;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* QUICK LINKS */
+.ql{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--b);margin-bottom:7px;transition:all .2s;}
+.ql:hover{border-color:var(--p);background:var(--pl);}
+.ql:last-child{margin-bottom:0;}
+.qi{font-size:18px;}
+.qt{font-size:12px;font-weight:700;}
+.qs{font-size:10px;color:var(--m);}
+
+/* REWARDS */
+.rw{background:white;border-radius:9px;padding:12px;border:1px solid var(--pb);margin-bottom:8px;}
+.rw:last-child{margin-bottom:0;}
+.rw-h{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;margin-bottom:4px;}
+.rw-d{font-size:11px;color:var(--m);line-height:1.6;}
+.rw-p{font-size:11px;font-weight:700;color:var(--p);margin-top:5px;}
+
+/* CHAT KING */
+.ck-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;border:1px solid var(--b);margin-bottom:5px;}
+.ck-rank{font-family:"Nunito",sans-serif;font-size:13px;font-weight:900;width:22px;text-align:center;flex-shrink:0;}
+.ck-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:white;flex-shrink:0;}
+.ck-name{font-size:12px;font-weight:700;flex:1;}
+.ck-bar-wrap{width:70px;height:6px;background:var(--b);border-radius:99px;overflow:hidden;}
+.ck-bar{height:100%;background:var(--p);border-radius:99px;}
+.ck-cnt{font-family:"Nunito",sans-serif;font-size:13px;font-weight:900;color:var(--p);min-width:28px;text-align:right;}
+.ck-crown{font-size:15px;}
+
+/* GOALS */
+.goal-item{background:var(--pl);border:1px solid var(--pb);border-radius:10px;padding:12px;margin-bottom:8px;}
+.goal-item:last-child{margin-bottom:0;}
+.goal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.goal-name{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;}
+.goal-av{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:white;flex-shrink:0;}
+.goal-badge-done{background:#22C55E;color:white;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;}
+.goal-badge-ing{background:var(--pb);color:var(--p);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;}
+.goal-text{font-size:13px;color:var(--t);line-height:1.6;margin-bottom:6px;}
+.goal-btn{background:var(--p);color:white;border:none;border-radius:7px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:"Noto Sans KR",sans-serif;}
+.goal-btn:hover{background:#D4308A;}
+.goal-proof{font-size:10px;color:var(--m);margin-top:4px;}
+.modal textarea{width:100%;border:1.5px solid var(--b);border-radius:9px;padding:10px 12px;font-size:12px;font-family:"Noto Sans KR",sans-serif;outline:none;margin-bottom:12px;resize:vertical;transition:border-color .2s;}
+.modal textarea:focus{border-color:var(--p);}
+
+@media(max-width:768px){
+  .wrap{grid-template-columns:1fr;}
+  header{padding:0 16px;}
+  .wrap{padding:14px;}
+  .banner{flex-direction:column;gap:12px;align-items:flex-start;}
+  .week-grid{gap:3px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NICK MODAL -->
+<div id="nick-modal">
+  <div class="nm-card">
+    <div style="font-size:36px;margin-bottom:10px;">👋</div>
+    <h2>WCL에 오신 걸 환영해요!</h2>
+    <p>커뮤니티에서 사용할 닉네임을 입력해 주세요.<br/>한 번만 입력하면 이후에는 자동으로 로그인돼요.</p>
+    <input type="text" id="nick-input" placeholder="닉네임 입력..." maxlength="10" onkeydown="if(event.key==='Enter')saveNick()"/>
+    <button onclick="saveNick()">시작하기 →</button>
+  </div>
+</div>
+
+<header>
+  <span class="logo">WCL <span>월드와이드 크리에이터 랩</span></span>
+  <div class="hdr-r">
+    <span class="date-txt" id="hdr-date"></span>
+    <span class="user-chip" id="user-chip" title="클릭해서 닉네임 변경"></span>
+    <span onclick="switchAccount()" style="font-size:11px;color:var(--m);cursor:pointer;text-decoration:underline;">계정 전환</span>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- LEFT -->
+  <div style="display:flex;flex-direction:column;gap:14px;">
+
+    <!-- CERT BANNER -->
+    <div class="banner">
+      <div>
+        <h2 id="banner-title">오늘 인증했나요? 🎯</h2>
+        <p>2일 1포스팅 미션 · 인증하고 랭킹 올리기!</p>
+      </div>
+      <div id="cert-area">
+        <button class="btn-cert" onclick="openModal()">인증하기 ✅</button>
+      </div>
+    </div>
+
+    <!-- WEEKLY -->
+    <div class="card">
+      <div class="ctitle">📅 이번 주 인증 현황</div>
+      <div class="week-grid" id="week-grid"></div>
+      <div class="today-panel open" id="today-panel">
+        <h4 id="panel-title"></h4>
+        <div class="tp-detail" id="panel-detail"></div>
+      </div>
+    </div>
+
+    <!-- MONTHLY GOALS -->
+    <div class="card">
+      <div class="ctitle" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <span>🎯 이달의 목표</span>
+        <button id="btn-add-goal" onclick="openGoalModal()" style="background:var(--p);color:white;border:none;border-radius:7px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:none;">+ 내 목표 작성</button>
+      </div>
+      <div id="goal-list"><div style="font-size:13px;color:var(--m);text-align:center;padding:14px 0;">로딩 중...</div></div>
+    </div>
+
+    <!-- PERSONAL CALENDAR -->
+    <div class="card">
+      <div class="cal-hdr">
+        <h3 id="cal-h3">📆 내 인증 달력</h3>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button id="btn-add-sched" onclick="openSchedModal()" style="display:none;background:var(--p);color:white;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">+ 일정 추가</button>
+          <div class="cal-nav">
+            <button onclick="changeMonth(-1)">‹</button>
+            <button onclick="changeMonth(1)">›</button>
+          </div>
+        </div>
+      </div>
+      <div class="cal-stat" id="cal-stat"></div>
+      <div class="dow"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+      <div class="pgrid" id="pgrid"></div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div style="display:flex;flex-direction:column;gap:14px;">
+
+    <!-- LEADERBOARD -->
+    <div class="card">
+      <div class="ctitle">🏆 이번달 인증 랭킹</div>
+      <div id="lb-list"><div style="font-size:13px;color:var(--m);text-align:center;padding:14px 0;">로딩 중...</div></div>
+    </div>
+
+    <!-- CHAT KING -->
+    <div class="card">
+      <div class="ctitle" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <span>💬 이달의 소통왕 <span style="font-size:9px;font-weight:500;color:var(--m);letter-spacing:0;">· 매주 월요일 업데이트</span></span>
+        <button id="btn-update-chat" onclick="openChatModal()" style="display:none;background:var(--p);color:white;border:none;border-radius:7px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📊 업데이트</button>
+      </div>
+      <div id="chat-rank-list"><div style="font-size:13px;color:var(--m);text-align:center;padding:14px 0;">로딩 중...</div></div>
+    </div>
+
+    <!-- REWARDS -->
+    <div class="card" style="background:var(--pl);border:1.5px solid var(--pb);">
+      <div class="ctitle">🎁 이달의 리워드</div>
+      <div class="rw"><div class="rw-h"><span>🥇</span>성과왕</div><div class="rw-d">이달 가장 큰 성과를 이룬 멤버</div><div class="rw-p">🎁 1:1 컨설팅 (₩180,000 상당)</div></div>
+      <div class="rw"><div class="rw-h"><span>💬</span>소통왕</div><div class="rw-d">리액션 가장 활발히 남긴 멤버</div><div class="rw-p">🎁 다음달 구독료 면제</div></div>
+    </div>
+
+    <!-- QUICK LINKS -->
+    <div class="card">
+      <div class="ctitle">🔗 빠른 링크</div>
+      <a href="https://www.instagram.com/gukbap_otter?igsh=Zm9wazJkZG5lcWkx&utm_source=qr" target="_blank" class="ql"><span class="qi">📸</span><div><div class="qt">국밥수달 인스타</div><div class="qs">인스타그램 보러가기</div></div></a>
+      <a href="https://open.kakao.com/o/gE43ofDi" target="_blank" class="ql"><span class="qi">💬</span><div><div class="qt">WCL 단톡방</div><div class="qs">카카오톡 오픈채팅</div></div></a>
+      <a href="https://open.kakao.com/me/Gukbap_otter" target="_blank" class="ql"><span class="qi">🦦</span><div><div class="qt">국밥수달 고객센터</div><div class="qs">1:1 카카오 문의</div></div></a>
+    </div>
+
+    <!-- MEMBERSHIP -->
+    <div class="card" style="border:1.5px solid var(--pb);">
+      <div class="ctitle">📌 멤버십</div>
+      <div style="font-size:13px;display:flex;flex-direction:column;gap:0;">
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--b);"><span style="color:var(--m);font-weight:600;">월 구독료</span><span style="font-weight:900;color:var(--p);">₩28,000</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--b);"><span style="color:var(--m);font-weight:600;">미션 주기</span><span style="font-weight:700;">2일 1포스팅</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--b);"><span style="color:var(--m);font-weight:600;">오프라인</span><span style="font-weight:700;">2주 1회</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;"><span style="color:var(--m);font-weight:600;">교육생 참여</span><span style="font-weight:700;color:var(--g);">무료 ✓</span></div>
+      </div>
+    </div>
+
+    <!-- RULES -->
+    <div class="card" style="border:1.5px solid #FFD0D0;background:#FFF8F8;">
+      <div class="ctitle" style="color:#E74040;">⚠️ 커뮤니티 룰</div>
+      <div style="background:#E74040;border-radius:8px;padding:10px 14px;margin-bottom:12px;">
+        <p style="color:white;font-size:13px;font-weight:700;line-height:1.7;">WCL 룰 어기면 <strong>환불없이 바로 퇴장조치</strong>입니다! 조심해주세요!!</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;gap:10px;padding:10px 12px;background:white;border-radius:8px;border:1px solid #FFE0E0;">
+          <span style="font-size:16px;flex-shrink:0;">🚫</span>
+          <p style="font-size:12px;color:#444;line-height:1.75;">특정 멤버가 다른 멤버를 대상으로 <strong>수익을 창출하거나 영업 활동을 하는 것은 엄격히 금지</strong>합니다.</p>
+        </div>
+        <div style="display:flex;gap:10px;padding:10px 12px;background:white;border-radius:8px;border:1px solid #FFE0E0;">
+          <span style="font-size:16px;flex-shrink:0;">📵</span>
+          <p style="font-size:12px;color:#444;line-height:1.75;"><strong>단톡에 개인 연락처·아이디 공유 금지.</strong> 갠톡 공유가 필요한 경우 국밥수달에게 문의해 주세요.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CERT MODAL -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <h3 id="modal-title">오늘 인증하기 ✅</h3>
+    <label>게시물 링크 (선택)</label>
+    <input type="url" id="m-url" placeholder="https://www.instagram.com/p/..."/>
+    <label>한마디 (선택)</label>
+    <input type="text" id="m-memo" placeholder="오늘 어떤 콘텐츠 올렸어요?"/>
+    <div class="mbtns">
+      <button class="btn-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-go" id="modal-submit-btn" onclick="submitCert()">인증 완료 🔥</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDULE MODAL -->
+<div class="overlay" id="sched-modal">
+  <div class="modal">
+    <h3 id="sm-title-h">📅 일정 추가</h3>
+    <label>날짜</label>
+    <input type="date" id="sm-date"/>
+    <label>일정 종류</label>
+    <select id="sm-type" style="width:100%;border:1.5px solid var(--b);border-radius:9px;padding:10px 12px;font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;margin-bottom:12px;color:var(--t);background:white;">
+      <option value="offline">🏃 오프라인 모임</option>
+      <option value="zoom">💻 줌(온라인) 미팅</option>
+      <option value="etc">📌 기타</option>
+    </select>
+    <label>일정 이름 (선택)</label>
+    <input type="text" id="sm-name" placeholder="예: 8월 정기 오프라인 모임"/>
+    <div class="mbtns">
+      <button class="btn-cancel" id="sm-del-btn" onclick="deleteCurrentSched()" style="display:none;background:#ff4d4d;color:white;border:none;">삭제</button>
+      <button class="btn-cancel" onclick="closeSchedModal()">취소</button>
+      <button class="btn-go" id="sm-submit-btn" onclick="submitSched()">추가하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT UPDATE MODAL -->
+<div class="overlay" id="chat-modal">
+  <div class="modal" style="max-width:480px;">
+    <h3>💬 소통왕 데이터 업데이트</h3>
+    <label>카카오톡 내보내기 파일 내용 전체 붙여넣기</label>
+    <textarea id="chat-paste" rows="10" placeholder="카카오톡 채팅 내보내기(.txt) 파일 내용 전체를 여기에 붙여넣으세요..."></textarea>
+    <div id="chat-preview" style="font-size:11px;color:var(--m);margin-bottom:12px;display:none;"></div>
+    <div class="mbtns">
+      <button class="btn-cancel" onclick="closeChatModal()">취소</button>
+      <button class="btn-go" onclick="parseChatAndSave()">분석 후 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- GOAL MODAL -->
+<div class="overlay" id="goal-modal">
+  <div class="modal">
+    <h3 id="gm-title">🎯 이달의 목표 작성</h3>
+    <label>이번달 목표</label>
+    <input type="text" id="goal-text" placeholder="예: 팔로워 1000명 달성!" maxlength="80"/>
+    <div class="mbtns">
+      <button class="btn-cancel" onclick="closeGoalModal()">취소</button>
+      <button class="btn-go" onclick="submitGoal()">등록하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- GOAL ACHIEVE MODAL -->
+<div class="overlay" id="achieve-modal">
+  <div class="modal">
+    <h3>🏆 목표 달성 인증!</h3>
+    <label>인증 링크 (선택)</label>
+    <input type="url" id="achieve-url" placeholder="https://instagram.com/..."/>
+    <div class="mbtns">
+      <button class="btn-cancel" onclick="closeAchieveModal()">취소</button>
+      <button class="btn-go" onclick="submitAchieve()">달성 인증 🎉</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDqqzRANh8CR_L3hburPrhY7PxfkX7igmg",
+  authDomain:"wcl-creator-lab.firebaseapp.com",
+  databaseURL:"https://wcl-creator-lab-default-rtdb.firebaseio.com",
+  projectId:"wcl-creator-lab",
+  storageBucket:"wcl-creator-lab.firebasestorage.app",
+  messagingSenderId:"829425384088"
+});
+const db = firebase.database();
+
+let ME = '';
+let allCerts = {};
+let viewMonth = new Date();
+let selWeekDay = null;
+
+const COLORS=['#F13C90','#FF6BB0','#FF9E5E','#FFB347','#6BCB77','#4D96FF','#A855F7','#14B8A6','#F97316','#06B6D4','#8B5CF6','#EC4899'];
+function gc(n){
+  let h=0;
+  for(let i=0;i<n.length;i++){h=((h<<5)-h+n.charCodeAt(i))|0;}
+  return COLORS[Math.abs(h)%COLORS.length];
+}
+
+const WD=['일','월','화','수','목','금','토'];
+function dk(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function today(){return dk(new Date());}
+function mkey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+
+// ── NICKNAME ──
+function initApp(){
+  ME=localStorage.getItem('wcl_nick')||'';
+  if(!ME){
+    document.getElementById('nick-modal').classList.add('show');
+    document.getElementById('nick-input').focus();
+  } else {
+    startDashboard();
+  }
+}
+function saveNick(){
+  const v=document.getElementById('nick-input').value.trim();
+  if(!v){toast('닉네임을 입력해 주세요!');return;}
+  ME=v;localStorage.setItem('wcl_nick',ME);
+  document.getElementById('nick-modal').classList.remove('show');
+  startDashboard();
+}
+function changeNick(){
+  const v=prompt('닉네임 변경 (현재: '+ME+')');
+  if(v&&v.trim()){
+    ME=v.trim();localStorage.setItem('wcl_nick',ME);
+    document.getElementById('user-chip').textContent='👤 '+ME;
+    document.getElementById('btn-add-sched').style.display=ME==='국밥수달'?'block':'none';
+    document.getElementById('btn-update-chat').style.display=ME==='국밥수달'?'block':'none';
+    toast('닉네임 변경됐어요!');
+  }
+}
+
+// ── DASHBOARD START ──
+let allScheds = {};
+let allChatCounts = {};
+let allGoals = {};
+
+function startDashboard(){
+  const now=new Date();
+  document.getElementById('hdr-date').textContent=(now.getMonth()+1)+'월 '+now.getDate()+'일 ('+WD[now.getDay()]+')';
+  const chip=document.getElementById('user-chip');
+  chip.textContent='👤 '+ME;
+  chip.onclick=()=>{
+    const choice=confirm('닉네임 변경: 확인\n다른 계정으로 로그인: 취소 후 아래에서 "계정 전환"');
+    if(choice){changeNick();}
+  };
+
+  // 관리자 체크
+  if(ME==='국밥수달'){
+    document.getElementById('btn-add-sched').style.display='block';
+    document.getElementById('btn-update-chat').style.display='block';
+  }
+  document.getElementById('btn-add-goal').style.display='block';
+
+  db.ref('wcl/certs').on('value',snap=>{
+    allCerts=snap.val()||{};
+    checkBanner();
+    renderWeek();
+    renderPersonalCal();
+    renderLB();
+  });
+
+  db.ref('wcl/scheds').on('value',snap=>{
+    allScheds=snap.val()||{};
+    renderPersonalCal();
+  });
+
+  db.ref('wcl/chatcounts/'+mkey(new Date())).on('value',snap=>{
+    allChatCounts=snap.val()||{};
+    renderChatRank();
+  });
+
+  db.ref('wcl/goals/'+mkey(new Date())).on('value',snap=>{
+    allGoals=snap.val()||{};
+    renderGoals();
+  });
+}
+
+// ── ACCOUNT SWITCH ──
+function switchAccount(){
+  if(!confirm('계정을 전환할까요? 현재 닉네임이 초기화됩니다.'))return;
+  localStorage.removeItem('wcl_nick');
+  ME='';
+  location.reload();
+}
+
+// ── CERT BANNER ──
+function checkBanner(){
+  const tc=(allCerts[today()]||{})[ME];
+  const area=document.getElementById('cert-area');
+  const title=document.getElementById('banner-title');
+  if(tc){
+    title.textContent='오늘 인증 완료! 🎉';
+    area.innerHTML='<div class="cert-done">✅ '+tc.time+' 인증</div>';
+  } else {
+    title.textContent='오늘 인증했나요? 🎯';
+    area.innerHTML='<button class="btn-cert" onclick="openModal()">인증하기 ✅</button>';
+  }
+}
+
+// ── WEEKLY ──
+function renderWeek(){
+  const now=new Date();
+  const dow=now.getDay();
+  const grid=document.getElementById('week-grid');
+  grid.innerHTML='';
+  const tk=today();
+
+  for(let i=0;i<7;i++){
+    const d=new Date(now);
+    d.setDate(now.getDate()-dow+i);
+    const key=dk(d);
+    const dayCerts=allCerts[key]||{};
+    const cnt=Object.keys(dayCerts).length;
+    const isToday=key===tk;
+    const isFuture=d>now&&!isToday;
+
+    const el=document.createElement('div');
+    const isSelected=selWeekDay===key||(selWeekDay===null&&isToday);
+    el.className='week-day'+(isToday?' today':'')+(isSelected?' selected':'');
+    el.id='wd-'+key;
+    el.innerHTML=
+      '<div class="wd-name">'+WD[i]+'</div>'+
+      '<div class="wd-date">'+(d.getMonth()+1)+'/'+d.getDate()+'</div>'+
+      '<div class="wd-cnt'+(cnt===0?' zero':'')+'">'+( isFuture?'-':cnt)+'</div>'+
+      '<div class="wd-label">'+(isFuture?'':cnt+'명')+'</div>';
+    el.onclick=()=>showDayPanel(key,d);
+    grid.appendChild(el);
+  }
+  // 오늘 패널 자동 표시
+  if(selWeekDay===null){
+    const nowD=new Date();
+    showDayPanel(tk,nowD,false);
+  }
+}
+
+function showDayPanel(key,d,updateSel=true){
+  if(updateSel) selWeekDay=key;
+  const panel=document.getElementById('today-panel');
+  panel.classList.add('open');
+
+  // 선택된 날 하이라이트
+  document.querySelectorAll('.week-day').forEach(el=>el.classList.remove('selected'));
+  const selEl=document.getElementById('wd-'+key);
+  if(selEl)selEl.classList.add('selected');
+
+  const dayCerts=allCerts[key]||{};
+  const names=Object.keys(dayCerts);
+  const dateStr=(d.getMonth()+1)+'/'+d.getDate()+' ('+WD[d.getDay()]+')';
+  document.getElementById('panel-title').textContent=dateStr+' 인증 내역 — '+names.length+'명';
+
+  const det=document.getElementById('panel-detail');
+  if(!names.length){
+    det.innerHTML='<div style="font-size:13px;color:var(--m);padding:6px 0;text-align:center;">이날 인증한 멤버가 없어요. 🥲</div>';
+    return;
+  }
+  det.innerHTML='';
+  names.sort((a,b)=>(dayCerts[a].ts||0)-(dayCerts[b].ts||0)).forEach(n=>{
+    const c=dayCerts[n];
+    const isMe=n===ME;
+    const el=document.createElement('div');el.className='tp-item';
+    el.innerHTML=
+      '<div class="ti-name">'+
+        '<span style="width:22px;height:22px;border-radius:50%;background:'+gc(n)+';display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:white;font-weight:800;flex-shrink:0;">'+n.charAt(0)+'</span>'+
+        '<span>'+n+'</span>'+
+        '<span class="ti-time">'+(c.time||'')+'</span>'+
+        (isMe?'<button onclick="openEditCertModal(\''+key+'\')" style="margin-left:auto;background:transparent;border:1px solid var(--b);border-radius:6px;padding:2px 8px;font-size:10px;color:var(--m);cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">수정</button>':'')+
+      '</div>'+
+      (c.memo?'<div class="ti-memo">'+c.memo+'</div>':'')+
+      (c.url?'<a class="ti-link" href="'+c.url+'" target="_blank">🔗 게시물 보기 →</a>':'');
+    det.appendChild(el);
+  });
+}
+
+// ── PERSONAL CALENDAR ──
+function renderPersonalCal(){
+  const y=viewMonth.getFullYear(),m=viewMonth.getMonth();
+  const mk=mkey(viewMonth);
+  const tk=today();
+  const now=new Date();
+
+  // Stats
+  let monthCount=0,streak=0;
+  const d2=new Date();
+  while(true){const k=dk(d2);if((allCerts[k]||{})[ME]){streak++;d2.setDate(d2.getDate()-1);}else break;}
+  Object.keys(allCerts).forEach(k=>{if(k.startsWith(mk)&&(allCerts[k]||{})[ME])monthCount++;});
+  const totalDays=new Date(y,m+1,0).getDate();
+  const pastDays=y===now.getFullYear()&&m===now.getMonth()?now.getDate():totalDays;
+
+  document.getElementById('cal-stat').innerHTML=
+    '<div class="cs-item"><div class="cs-num">'+monthCount+'</div><div class="cs-lbl">이번달 인증 횟수</div></div>'+
+    '<div class="cs-item"><div class="cs-num" style="color:'+(streak>0?'var(--p)':'#bbb')+'">'+streak+'</div><div class="cs-lbl">🔥 연속 인증일</div></div>'+
+    '<div class="cs-item"><div class="cs-num">'+Math.round(monthCount/Math.max(pastDays,1)*100)+'%</div><div class="cs-lbl">이번달 달성률</div></div>';
+
+  const first=new Date(y,m,1),last=new Date(y,m+1,0);
+  const grid=document.getElementById('pgrid');
+  grid.innerHTML='';
+
+  for(let i=0;i<first.getDay();i++){const el=document.createElement('div');el.className='pday empty';grid.appendChild(el);}
+
+  for(let day=1;day<=last.getDate();day++){
+    const dd=new Date(y,m,day),key=dk(dd);
+    const certified=!!(allCerts[key]||{})[ME];
+    const isToday=key===tk;
+    const isFuture=dd>now&&!isToday;
+
+    const el=document.createElement('div');
+    if(isToday&&certified) el.className='pday today-done';
+    else if(isToday&&!certified) el.className='pday today-no';
+    else if(isFuture) el.className='pday other';
+    else if(certified) el.className='pday done';
+    else el.className='pday missed';
+
+    const dayScheds=(allScheds[key]||[]);
+    el.innerHTML='<span>'+day+'</span>'+(certified?'<span class="check-mark">✓</span>':'');
+    dayScheds.forEach((s,si)=>{
+      const cls=s.type==='offline'?'sb-offline':s.type==='zoom'?'sb-zoom':'sb-etc';
+      const icon=s.type==='offline'?'🏃':s.type==='zoom'?'💻':'📌';
+      const badge=document.createElement('div');
+      badge.className='sched-badge '+cls;
+      badge.textContent=icon+' '+(s.title||(s.type==='offline'?'오프라인':'줌 미팅'));
+      if(ME==='국밥수달'){
+        badge.style.cursor='pointer';
+        badge.title='클릭해서 수정';
+        badge.onclick=(e)=>{e.stopPropagation();openEditSchedModal(key,si,s);};
+      }
+      el.appendChild(badge);
+    });
+    grid.appendChild(el);
+  }
+
+  // Update calendar title
+  document.querySelector('.cal-hdr h3').textContent=(y===new Date().getFullYear()?'':(y+'년 '))+(m+1)+'월 내 인증 달력';
+}
+
+function renderCommunityFeed(){
+  const tk=today();
+  const now=new Date();
+  const dateStr=(now.getMonth()+1)+'월 '+now.getDate()+'일';
+  document.getElementById('feed-date').textContent='— '+dateStr;
+  
+  const todayCerts=allCerts[tk]||{};
+  const entries=Object.entries(todayCerts).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
+  const list=document.getElementById('cf-list');
+  
+  if(!entries.length){
+    list.innerHTML='<div style="font-size:13px;color:var(--m);text-align:center;padding:20px 0;">아직 오늘 인증한 멤버가 없어요.<br/>첫 번째로 인증해 보세요! 🔥</div>';
+    return;
+  }
+  list.innerHTML='';
+  entries.forEach(([n,c])=>{
+    const div=document.createElement('div');div.className='cf-item';
+    div.innerHTML=
+      '<div class="cf-av" style="background:'+gc(n)+'">'+n.charAt(0)+'</div>'+
+      '<div class="cf-body">'+
+        '<span class="cf-name">'+n+'</span>'+
+        '<span class="cf-time">'+(c.time||'')+'</span>'+
+        (c.memo?'<div class="cf-memo">'+c.memo+'</div>':'')+
+        (c.url?'<div><a class="cf-link" href="'+c.url+'" target="_blank">🔗 게시물 보기</a></div>':'')+
+      '</div>';
+    list.appendChild(div);
+  });
+}
+
+function changeMonth(d){viewMonth.setMonth(viewMonth.getMonth()+d);renderPersonalCal();}
+
+let smEditKey=null, smEditIdx=-1;
+
+function openSchedModal(){
+  smEditKey=null; smEditIdx=-1;
+  document.getElementById('sm-title-h').textContent='📅 일정 추가';
+  document.getElementById('sm-submit-btn').textContent='추가하기';
+  document.getElementById('sm-del-btn').style.display='none';
+  document.getElementById('sched-modal').classList.add('open');
+  document.getElementById('sm-date').value=dk(new Date());
+  document.getElementById('sm-name').value='';
+  document.getElementById('sm-type').value='offline';
+}
+
+function openEditSchedModal(key,idx,sched){
+  smEditKey=key; smEditIdx=idx;
+  document.getElementById('sm-title-h').textContent='✏️ 일정 수정';
+  document.getElementById('sm-submit-btn').textContent='수정하기';
+  document.getElementById('sm-del-btn').style.display='';
+  document.getElementById('sm-date').value=key;
+  document.getElementById('sm-type').value=sched.type||'offline';
+  document.getElementById('sm-name').value=sched.title||'';
+  document.getElementById('sched-modal').classList.add('open');
+}
+
+function closeSchedModal(){
+  document.getElementById('sched-modal').classList.remove('open');
+  smEditKey=null; smEditIdx=-1;
+}
+
+function submitSched(){
+  const date=document.getElementById('sm-date').value;
+  const type=document.getElementById('sm-type').value;
+  const title=document.getElementById('sm-name').value.trim();
+  if(!date){toast('날짜를 선택해 주세요!');return;}
+
+  if(smEditKey!==null){
+    // edit mode
+    const list=JSON.parse(JSON.stringify(allScheds[smEditKey]||[]));
+    if(smEditIdx<0||smEditIdx>=list.length){toast('오류: 항목을 찾을 수 없어요.');return;}
+    const oldTs=list[smEditIdx].ts;
+    list.splice(smEditIdx,1); // remove from old position
+    const newKey=date;
+    // if date changed, move to new key
+    if(newKey!==smEditKey){
+      const newList=JSON.parse(JSON.stringify(allScheds[newKey]||[]));
+      newList.push({type,title,ts:oldTs});
+      db.ref('wcl/scheds/'+smEditKey).set(list.length?list:null);
+      db.ref('wcl/scheds/'+newKey).set(newList)
+        .then(()=>{closeSchedModal();toast('일정 수정됐어요! ✅');})
+        .catch(e=>toast('오류: '+e.message));
+    } else {
+      list.splice(smEditIdx,0,{type,title,ts:oldTs});
+      db.ref('wcl/scheds/'+smEditKey).set(list)
+        .then(()=>{closeSchedModal();toast('일정 수정됐어요! ✅');})
+        .catch(e=>toast('오류: '+e.message));
+    }
+  } else {
+    // add mode
+    const existing=JSON.parse(JSON.stringify(allScheds[date]||[]));
+    existing.push({type,title,ts:Date.now()});
+    db.ref('wcl/scheds/'+date).set(existing)
+      .then(()=>{closeSchedModal();toast('일정 추가됐어요! 📅');})
+      .catch(e=>toast('오류: '+e.message));
+  }
+}
+
+function deleteCurrentSched(){
+  if(smEditKey===null)return;
+  const list=JSON.parse(JSON.stringify(allScheds[smEditKey]||[]));
+  const name=list[smEditIdx]?.title||list[smEditIdx]?.type||'이 일정';
+  if(!confirm('삭제할까요?\n'+name))return;
+  list.splice(smEditIdx,1);
+  db.ref('wcl/scheds/'+smEditKey).set(list.length?list:null)
+    .then(()=>{closeSchedModal();toast('일정 삭제됐어요.');})
+    .catch(e=>toast('오류: '+e.message));
+}
+
+// ── LEADERBOARD ──
+function renderLB(){
+  const mk=mkey(new Date());
+  const members={};
+  Object.entries(allCerts).forEach(([k,dc])=>{
+    if(!k.startsWith(mk))return;
+    Object.keys(dc).forEach(n=>{if(!members[n])members[n]=0;members[n]++;});
+  });
+  const sorted=Object.entries(members).sort((a,b)=>b[1]-a[1]);
+  const list=document.getElementById('lb-list');
+  if(!sorted.length){list.innerHTML='<div style="font-size:13px;color:var(--m);text-align:center;padding:14px 0;">아직 이번달 인증이 없어요!</div>';return;}
+  
+  // streak per member
+  const streaks={};
+  Object.keys(members).forEach(n=>{
+    let s=0,d=new Date();
+    while(true){const k=dk(d);if((allCerts[k]||{})[n]){s++;d.setDate(d.getDate()-1);}else break;}
+    streaks[n]=s;
+  });
+
+  const medals=['🥇','🥈','🥉'];
+  list.innerHTML='';
+  sorted.forEach(([n,cnt],i)=>{
+    const el=document.createElement('div');el.className='lb-item';
+    el.innerHTML='<div class="lb-rank">'+(medals[i]||(i+1))+'</div>'+
+      '<div class="lb-av" style="background:'+gc(n)+'">'+n.charAt(0)+'</div>'+
+      '<div class="lb-name">'+n+'</div>'+
+      (streaks[n]>0?'<div class="lb-str">🔥'+streaks[n]+'일</div>':'')+
+      '<div class="lb-cnt"><div class="n">'+cnt+'</div><div class="s">회</div></div>';
+    list.appendChild(el);
+  });
+}
+
+// ── CHAT KING ──
+function renderChatRank(){
+  const entries=Object.entries(allChatCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const list=document.getElementById('chat-rank-list');
+  if(!entries.length){
+    list.innerHTML='<div style="font-size:13px;color:var(--m);text-align:center;padding:14px 0;">아직 데이터가 없어요.<br/>매주 월요일 업데이트됩니다!</div>';
+    return;
+  }
+  const max=entries[0][1]||1;
+  const medals=['🥇','🥈','🥉'];
+  list.innerHTML='';
+  entries.forEach(([n,cnt],i)=>{
+    const el=document.createElement('div');el.className='ck-item';
+    el.innerHTML=
+      '<div class="ck-rank">'+(i===0?'<span class="ck-crown">👑</span>':(medals[i]||(i+1)))+'</div>'+
+      '<div class="ck-av" style="background:'+gc(n)+'">'+n.charAt(0)+'</div>'+
+      '<div class="ck-name">'+n+'</div>'+
+      '<div class="ck-bar-wrap"><div class="ck-bar" style="width:'+(cnt/max*100).toFixed(0)+'%"></div></div>'+
+      '<div class="ck-cnt">'+cnt+'</div>';
+    list.appendChild(el);
+  });
+}
+
+function openChatModal(){document.getElementById('chat-modal').classList.add('open');document.getElementById('chat-paste').value='';document.getElementById('chat-preview').style.display='none';}
+function closeChatModal(){document.getElementById('chat-modal').classList.remove('open');}
+
+function parseChatAndSave(){
+  const text=document.getElementById('chat-paste').value;
+  if(!text.trim()){toast('채팅 내용을 붙여넣어 주세요!');return;}
+  const mk=mkey(new Date());
+  const [y,m]=mk.split('-');
+  const monthNum=parseInt(m);
+  const counts={};
+  const lines=text.split('\n');
+  const pat=/^(\d+)\/(\d+)\/\d+\s+(오전|오후)\s+[\d:]+,\s+(.+?)\s*:\s*/;
+  lines.forEach(line=>{
+    const match=line.match(pat);
+    if(!match)return;
+    const lineMonth=parseInt(match[1]);
+    if(lineMonth!==monthNum)return;
+    const name=match[4].trim();
+    if(name==='오픈채팅봇')return;
+    counts[name]=(counts[name]||0)+1;
+  });
+  if(!Object.keys(counts).length){toast('해당 월 메시지가 없어요. 월을 확인해 주세요.');return;}
+  const preview=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([n,c])=>n+': '+c+'개').join(', ');
+  document.getElementById('chat-preview').textContent='미리보기: '+preview;
+  document.getElementById('chat-preview').style.display='block';
+  db.ref('wcl/chatcounts/'+mk).set(counts)
+    .then(()=>{closeChatModal();toast('소통왕 랭킹 업데이트됐어요! 💬');})
+    .catch(e=>toast('오류: '+e.message));
+}
+
+// ── MONTHLY GOALS ──
+function renderGoals(){
+  const list=document.getElementById('goal-list');
+  const entries=Object.entries(allGoals).sort((a,b)=>{
+    if(a[1].achieved&&!b[1].achieved)return 1;
+    if(!a[1].achieved&&b[1].achieved)return -1;
+    return (b[1].ts||0)-(a[1].ts||0);
+  });
+  if(!entries.length){
+    list.innerHTML='<div style="font-size:13px;color:var(--m);text-align:center;padding:14px 0;">아직 이번달 목표를 작성한 멤버가 없어요!<br/>첫 번째로 목표를 등록해 보세요 🎯</div>';
+    return;
+  }
+  list.innerHTML='';
+  entries.forEach(([n,g])=>{
+    const el=document.createElement('div');el.className='goal-item';
+    const isMe=n===ME;
+    const badge=g.achieved
+      ?'<span class="goal-badge-done">✅ 달성!</span>'
+      :'<span class="goal-badge-ing">진행중</span>';
+    el.innerHTML=
+      '<div class="goal-header">'+
+        '<div class="goal-name"><div class="goal-av" style="background:'+gc(n)+'">'+n.charAt(0)+'</div>'+n+'</div>'+
+        badge+
+      '</div>'+
+      '<div class="goal-text">'+g.goal+'</div>'+
+      (g.achieved&&g.proofUrl?'<a class="cf-link" href="'+g.proofUrl+'" target="_blank">🔗 달성 인증 보기</a>':'');
+    if(isMe&&!g.achieved){
+      const btn=document.createElement('button');
+      btn.className='goal-btn';btn.textContent='🏆 달성 인증하기';
+      btn.onclick=()=>openAchieveModal(n);
+      el.appendChild(btn);
+    }
+    if(isMe){
+      const del=document.createElement('button');
+      del.className='goal-btn';del.style.cssText='background:transparent;color:var(--m);border:1px solid var(--b);margin-left:6px;font-size:10px;';
+      del.textContent='수정';
+      del.onclick=()=>openGoalModal(true,g.goal);
+      el.appendChild(del);
+    }
+    list.appendChild(el);
+  });
+}
+
+let goalEditMode=false;
+function openGoalModal(edit=false, existing=''){
+  goalEditMode=edit;
+  document.getElementById('gm-title').textContent=edit?'✏️ 목표 수정':'🎯 이달의 목표 작성';
+  document.getElementById('goal-text').value=existing||'';
+  document.getElementById('goal-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('goal-text').focus(),100);
+}
+function closeGoalModal(){document.getElementById('goal-modal').classList.remove('open');}
+function submitGoal(){
+  const goal=document.getElementById('goal-text').value.trim();
+  if(!goal){toast('목표를 입력해 주세요!');return;}
+  const mk=mkey(new Date());
+  const existing=allGoals[ME]||{};
+  const data={goal,ts:existing.ts||Date.now(),achieved:existing.achieved||false};
+  if(existing.proofUrl)data.proofUrl=existing.proofUrl;
+  if(existing.achievedTs)data.achievedTs=existing.achievedTs;
+  db.ref('wcl/goals/'+mk+'/'+ME).set(data)
+    .then(()=>{closeGoalModal();toast(goalEditMode?'목표 수정됐어요! ✏️':'목표 등록됐어요! 🎯');})
+    .catch(e=>toast('오류: '+e.message));
+}
+
+let achieveTarget='';
+function openAchieveModal(name){
+  achieveTarget=name;
+  document.getElementById('achieve-url').value='';
+  document.getElementById('achieve-modal').classList.add('open');
+}
+function closeAchieveModal(){document.getElementById('achieve-modal').classList.remove('open');}
+function submitAchieve(){
+  const url=document.getElementById('achieve-url').value.trim();
+  const mk=mkey(new Date());
+  const data=Object.assign({},allGoals[achieveTarget]||{},{achieved:true,achievedTs:Date.now()});
+  if(url)data.proofUrl=url;
+  db.ref('wcl/goals/'+mk+'/'+achieveTarget).set(data)
+    .then(()=>{closeAchieveModal();toast('목표 달성 인증 완료! 🎉');})
+    .catch(e=>toast('오류: '+e.message));
+}
+
+// ── CERT MODAL ──
+let certEditKey = null;
+
+function openModal(){
+  if((allCerts[today()]||{})[ME]){toast('오늘 이미 인증했어요! ✅');return;}
+  certEditKey=null;
+  document.getElementById('modal-title').textContent='오늘 인증하기 ✅';
+  document.getElementById('modal-submit-btn').textContent='인증 완료 🔥';
+  document.getElementById('m-url').value='';
+  document.getElementById('m-memo').value='';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(()=>document.getElementById('m-memo').focus(),100);
+}
+
+function openEditCertModal(dateKey){
+  const cert=(allCerts[dateKey]||{})[ME];
+  if(!cert){toast('내 인증 내역이 없어요.');return;}
+  certEditKey=dateKey;
+  document.getElementById('modal-title').textContent='인증 수정하기 ✏️';
+  document.getElementById('modal-submit-btn').textContent='수정 완료';
+  document.getElementById('m-url').value=cert.url||'';
+  document.getElementById('m-memo').value=cert.memo||'';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(()=>document.getElementById('m-memo').focus(),100);
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('open');certEditKey=null;}
+
+function submitCert(){
+  const url=document.getElementById('m-url').value.trim();
+  const memo=document.getElementById('m-memo').value.trim();
+
+  if(certEditKey){
+    // 수정 모드 — 원래 time/ts 유지
+    const old=(allCerts[certEditKey]||{})[ME]||{};
+    db.ref('wcl/certs/'+certEditKey+'/'+ME).set({time:old.time||'',url,memo,ts:old.ts||Date.now()})
+      .then(()=>{closeModal();toast('인증 수정됐어요! ✏️');})
+      .catch(e=>toast('오류: '+e.message));
+  } else {
+    const now=new Date();
+    const time=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    db.ref('wcl/certs/'+today()+'/'+ME).set({time,url,memo,ts:Date.now()})
+      .then(()=>{closeModal();toast('인증 완료! 오늘도 해냈어요 🔥');})
+      .catch(e=>toast('오류: '+e.message));
+  }
+}
+
+window.onload=initApp;
+</script>
+</body>
+</html>
