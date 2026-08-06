@@ -48,6 +48,12 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
 
 /* WEEKLY */
 .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.cal-day{border-radius:8px;padding:5px 2px;text-align:center;font-size:11px;font-weight:700;border:1.5px solid var(--b);min-height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
+.cal-day.certified{background:var(--p);border-color:var(--p);color:white;}
+.cal-day.today{border-color:var(--p);color:var(--p);}
+.cal-day.today.certified{color:white;}
+.cal-day.empty{border-color:transparent;background:transparent;}
+.cal-day.future{color:#ccc;border-color:#eee;background:#fafafa;}
 .week-day{border-radius:10px;padding:10px 4px;text-align:center;border:1.5px solid var(--b);transition:all .2s;cursor:pointer;}
 .week-day:hover{border-color:var(--pb);background:var(--pl);}
 .week-day.today{border-color:var(--p);background:var(--pl);}
@@ -321,6 +327,12 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
       </div>
     </div>
 
+    <!-- MONTHLY CERT CALENDAR -->
+    <div class="card">
+      <div class="ctitle" id="cal-title">📆 8월 인증 달력</div>
+      <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:4px;"></div>
+    </div>
+
     <!-- WEEKLY -->
     <div class="card">
       <div class="ctitle">📅 이번 주 인증 현황</div>
@@ -453,6 +465,14 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
     <input type="url" id="m-url" placeholder="https://www.instagram.com/p/..."/>
     <label>한마디 (선택)</label>
     <input type="text" id="m-memo" placeholder="오늘 어떤 콘텐츠 올렸어요?"/>
+    <label>사진 첨부 (선택)</label>
+    <div id="m-photo-wrap" style="position:relative;">
+      <input type="file" id="m-photo" accept="image/*" style="display:none;" onchange="handlePhotoSelect(this)"/>
+      <div onclick="document.getElementById('m-photo').click()" id="m-photo-preview"
+        style="border:2px dashed var(--b);border-radius:10px;padding:14px;text-align:center;cursor:pointer;font-size:12px;color:var(--m);min-height:48px;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--bg);">
+        📷 사진 선택
+      </div>
+    </div>
     <div class="mbtns">
       <button class="btn-cancel" onclick="closeModal()">취소</button>
       <button class="btn-go" id="modal-submit-btn" onclick="submitCert()">인증 완료 🔥</button>
@@ -512,12 +532,12 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
 <!-- GOAL ACHIEVE MODAL -->
 <div class="overlay" id="achieve-modal">
   <div class="modal">
-    <h3>🏆 목표 달성 인증!</h3>
+    <h3 id="achieve-modal-title">🏆 목표 달성 인증!</h3>
     <label>인증 링크 <span style="color:#E74040;font-weight:700;">(필수)</span></label>
     <input type="url" id="achieve-url" placeholder="https://instagram.com/..."/>
     <div class="mbtns">
       <button class="btn-cancel" onclick="closeAchieveModal()">취소</button>
-      <button class="btn-go" onclick="submitAchieve()">달성 인증 🎉</button>
+      <button id="achieve-submit-btn" class="btn-go" onclick="submitAchieve()">달성 인증 🎉</button>
     </div>
   </div>
 </div>
@@ -619,6 +639,7 @@ function startDashboard(){
     renderWeek();
     renderPersonalCal();
     renderLB();
+    renderCertCalendar();
   });
 
   db.ref('wcl/scheds').on('value',snap=>{
@@ -839,6 +860,7 @@ function renderCommunityFeed(){
         '<span class="cf-name">'+n+'</span>'+
         '<span class="cf-time">'+(c.time||'')+'</span>'+
         (c.memo?'<div class="cf-memo">'+c.memo+'</div>':'')+
+        (c.photoData?'<div style="margin-top:6px;"><img src="'+c.photoData+'" style="max-width:100%;max-height:200px;border-radius:8px;object-fit:cover;"/></div>':'')+
         (c.url?'<div><a class="cf-link" href="'+c.url+'" target="_blank">🔗 게시물 보기</a></div>':'')+
       '</div>';
     list.appendChild(div);
@@ -1305,13 +1327,18 @@ function renderGoals(){
       '</div>'+
       '<div class="goal-text">'+g.goal+'</div>'+
       (g.achieved&&g.proofUrl?'<a class="cf-link" href="'+g.proofUrl+'" target="_blank">🔗 달성 인증 보기</a>':'');
-    if(isMe&&!g.achieved){
-      const btn=document.createElement('button');
-      btn.className='goal-btn';btn.textContent='🏆 달성 인증하기';
-      btn.onclick=()=>openAchieveModal(n);
-      el.appendChild(btn);
-    }
     if(isMe){
+      if(!g.achieved){
+        const btn=document.createElement('button');
+        btn.className='goal-btn';btn.textContent='🏆 달성 인증하기';
+        btn.onclick=()=>openAchieveModal(n);
+        el.appendChild(btn);
+      } else {
+        const btn=document.createElement('button');
+        btn.className='goal-btn';btn.style.cssText='background:#6BCB77;font-size:10px;';btn.textContent='✏️ 인증수정';
+        btn.onclick=()=>openAchieveModal(n,true);
+        el.appendChild(btn);
+      }
       const del=document.createElement('button');
       del.className='goal-btn';del.style.cssText='background:transparent;color:var(--m);border:1px solid var(--b);margin-left:6px;font-size:10px;';
       del.textContent='수정';
@@ -1345,9 +1372,13 @@ function submitGoal(){
 }
 
 let achieveTarget='';
-function openAchieveModal(name){
+function openAchieveModal(name,isEdit=false){
   achieveTarget=name;
-  document.getElementById('achieve-url').value='';
+  const mk=mkey(new Date());
+  const existing=allGoals[name]||{};
+  document.getElementById('achieve-url').value=existing.proofUrl||'';
+  document.getElementById('achieve-modal-title').textContent=isEdit?'✏️ 달성 인증 수정':'🏆 목표 달성 인증!';
+  document.getElementById('achieve-submit-btn').textContent=isEdit?'수정 완료':'달성 인증 🎉';
   document.getElementById('achieve-modal').classList.add('open');
 }
 function closeAchieveModal(){document.getElementById('achieve-modal').classList.remove('open');}
@@ -1362,8 +1393,74 @@ function submitAchieve(){
     .catch(e=>toast('오류: '+e.message));
 }
 
+// ── MONTHLY CERT CALENDAR ──
+function renderCertCalendar(){
+  const now=new Date();
+  const year=now.getFullYear(), month=now.getMonth();
+  document.getElementById('cal-title').textContent='📆 '+(month+1)+'월 인증 달력';
+  const firstDay=new Date(year,month,1).getDay(); // 0=일
+  const lastDate=new Date(year,month+1,0).getDate();
+  const todayDate=now.getDate();
+  const mk=mkey(now);
+
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML='';
+  const days=['일','월','화','수','목','금','토'];
+  days.forEach(d=>{
+    const h=document.createElement('div');
+    h.style.cssText='text-align:center;font-size:10px;font-weight:700;color:var(--m);padding:2px 0;';
+    h.textContent=d;
+    grid.appendChild(h);
+  });
+  for(let i=0;i<firstDay;i++){
+    const emp=document.createElement('div');emp.className='cal-day empty';grid.appendChild(emp);
+  }
+  for(let d=1;d<=lastDate;d++){
+    const dateStr=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const certified=!!(allCerts[dateStr]&&allCerts[dateStr][ME]);
+    const isToday=d===todayDate;
+    const isFuture=d>todayDate;
+    const cell=document.createElement('div');
+    cell.className='cal-day'+(certified?' certified':'')+(isToday&&!certified?' today':'')+(isFuture?' future':'');
+    cell.innerHTML='<span>'+d+'</span>'+(certified?'<span style="font-size:9px;">✅</span>':'');
+    grid.appendChild(cell);
+  }
+}
+
 // ── CERT MODAL ──
-let certEditKey = null;
+let certEditKey=null;
+let pendingPhotoData=''; // base64 압축 이미지
+
+function resetPhotoInput(){
+  pendingPhotoData='';
+  document.getElementById('m-photo').value='';
+  document.getElementById('m-photo-preview').innerHTML='📷 사진 선택';
+  document.getElementById('m-photo-preview').style.background='var(--bg)';
+}
+
+function handlePhotoSelect(input){
+  const file=input.files[0];
+  if(!file)return;
+  if(file.size>10*1024*1024){toast('10MB 이하 이미지만 가능해요!');return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const maxW=600;
+      const scale=img.width>maxW?maxW/img.width:1;
+      const canvas=document.createElement('canvas');
+      canvas.width=img.width*scale;
+      canvas.height=img.height*scale;
+      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+      pendingPhotoData=canvas.toDataURL('image/jpeg',0.7);
+      const prev=document.getElementById('m-photo-preview');
+      prev.innerHTML='<img src="'+pendingPhotoData+'" style="max-width:100%;max-height:120px;border-radius:8px;object-fit:contain;"/> <div style="font-size:10px;margin-top:4px;color:var(--m);">탭하면 변경</div>';
+      prev.style.background='#f5f5f5';
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
 
 function openModal(){
   if((allCerts[today()]||{})[ME]){toast('오늘 이미 인증했어요! ✅');return;}
@@ -1372,6 +1469,7 @@ function openModal(){
   document.getElementById('modal-submit-btn').textContent='인증 완료 🔥';
   document.getElementById('m-url').value='';
   document.getElementById('m-memo').value='';
+  resetPhotoInput();
   document.getElementById('modal').classList.add('open');
   setTimeout(()=>document.getElementById('m-memo').focus(),100);
 }
@@ -1384,26 +1482,37 @@ function openEditCertModal(dateKey){
   document.getElementById('modal-submit-btn').textContent='수정 완료';
   document.getElementById('m-url').value=cert.url||'';
   document.getElementById('m-memo').value=cert.memo||'';
+  resetPhotoInput();
+  if(cert.photoData){
+    pendingPhotoData=cert.photoData;
+    const prev=document.getElementById('m-photo-preview');
+    prev.innerHTML='<img src="'+cert.photoData+'" style="max-width:100%;max-height:120px;border-radius:8px;object-fit:contain;"/> <div style="font-size:10px;margin-top:4px;color:var(--m);">탭하면 변경</div>';
+    prev.style.background='#f5f5f5';
+  }
   document.getElementById('modal').classList.add('open');
   setTimeout(()=>document.getElementById('m-memo').focus(),100);
 }
 
-function closeModal(){document.getElementById('modal').classList.remove('open');certEditKey=null;}
+function closeModal(){document.getElementById('modal').classList.remove('open');certEditKey=null;resetPhotoInput();}
 
 function submitCert(){
   const url=document.getElementById('m-url').value.trim();
   const memo=document.getElementById('m-memo').value.trim();
 
   if(certEditKey){
-    // 수정 모드 — 원래 time/ts 유지
     const old=(allCerts[certEditKey]||{})[ME]||{};
-    db.ref('wcl/certs/'+certEditKey+'/'+ME).set({time:old.time||'',url,memo,ts:old.ts||Date.now()})
+    const data={time:old.time||'',url,memo,ts:old.ts||Date.now()};
+    if(pendingPhotoData)data.photoData=pendingPhotoData;
+    else if(old.photoData)data.photoData=old.photoData;
+    db.ref('wcl/certs/'+certEditKey+'/'+ME).set(data)
       .then(()=>{closeModal();toast('인증 수정됐어요! ✏️');})
       .catch(e=>toast('오류: '+e.message));
   } else {
     const now=new Date();
     const time=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-    db.ref('wcl/certs/'+today()+'/'+ME).set({time,url,memo,ts:Date.now()})
+    const data={time,url,memo,ts:Date.now()};
+    if(pendingPhotoData)data.photoData=pendingPhotoData;
+    db.ref('wcl/certs/'+today()+'/'+ME).set(data)
       .then(()=>{closeModal();toast('인증 완료! 오늘도 해냈어요 🔥');})
       .catch(e=>toast('오류: '+e.message));
   }
