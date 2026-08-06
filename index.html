@@ -1013,18 +1013,20 @@ function renderProfiles(){
   card.innerHTML=
     '<div class="pc-av" style="background:'+avColor(ME)+';width:56px;height:56px;font-size:22px;align-self:flex-start;">'+avContent(ME)+'</div>'+
     '<div class="pc-info">'+
-      '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:2px;">'+
+      '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:4px;">'+
         '<span class="pc-name">'+ME+'</span>'+
         (badgeHTML?badgeHTML:'')+
+        '<span style="font-size:9px;color:var(--m);font-weight:600;">'+joinedStr+'</span>'+
       '</div>'+
-      '<div style="font-size:9px;color:var(--m);font-weight:600;margin-bottom:6px;">'+joinedStr+'</div>'+
       (mem.bio?'<div style="font-size:11px;color:#555;line-height:1.55;margin-bottom:6px;">'+mem.bio+'</div>':'')+
-      '<div style="display:flex;gap:10px;margin-bottom:6px;">'+
-        '<div style="font-size:11px;color:var(--m);">이번달 <span style="font-family:Nunito,sans-serif;font-weight:900;color:var(--p);font-size:14px;">'+cnt+'</span>회 인증</div>'+
-        (streak>0?'<div style="font-size:11px;color:var(--m);">연속 <span style="font-family:Nunito,sans-serif;font-weight:900;color:var(--p);font-size:14px;">'+streak+'</span>일 🔥</div>':'')+
+      (goal?'<div class="goal-quote" style="margin:4px 0 6px;padding:10px 14px;"><span class="goal-quote-text" style="font-size:14px;">'+goal.goal+'</span></div>':'<div class="pc-goal" style="color:var(--m);margin-bottom:6px;">목표를 등록해보세요!</div>')+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px;">'+
+        '<div style="display:flex;gap:10px;">'+
+          '<div style="font-size:11px;color:var(--m);">이번달 <span style="font-family:Nunito,sans-serif;font-weight:900;color:var(--p);font-size:14px;">'+cnt+'</span>회 인증</div>'+
+          (streak>0?'<div style="font-size:11px;color:var(--m);">연속 <span style="font-family:Nunito,sans-serif;font-weight:900;color:var(--p);font-size:14px;">'+streak+'</span>일 🔥</div>':'')+
+        '</div>'+
+        (mem.insta?'<a href="'+mem.insta+'" target="_blank" style="font-size:11px;font-weight:700;color:var(--p);text-decoration:none;">📸 인스타그램 →</a>':'')+
       '</div>'+
-      (goal?'<div class="goal-quote" style="margin:4px 0;padding:10px 14px;"><span class="goal-quote-text" style="font-size:14px;">'+goal.goal+'</span></div>':'<div class="pc-goal" style="color:var(--m);">목표를 등록해보세요!</div>')+
-      (mem.insta?'<div style="margin-top:6px;"><a href="'+mem.insta+'" target="_blank" style="font-size:11px;font-weight:700;color:var(--p);text-decoration:none;">📸 인스타그램 →</a></div>':'')+
       (showMs?'<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1.5px solid var(--pb);border-radius:8px;padding:6px 12px;margin-top:6px;"><span style="font-size:10px;font-weight:700;color:var(--m);">💳 멤버십</span><span style="font-size:11px;font-weight:900;color:var(--p);">'+msType+' <span style="font-weight:700;color:var(--t);">'+msPrice+'</span></span></div>':'')+
     '</div>';
   card.onclick=()=>openProfileModal(ME,null);
