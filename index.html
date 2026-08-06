@@ -1347,11 +1347,21 @@ function renderGoals(){
         btn.onclick=()=>openAchieveModal(n,true);
         el.appendChild(btn);
       }
-      const del=document.createElement('button');
-      del.className='goal-btn';del.style.cssText='background:transparent;color:var(--m);border:1px solid var(--b);margin-left:6px;font-size:10px;';
-      del.textContent='수정';
-      del.onclick=()=>openGoalModal(true,g.goal);
-      el.appendChild(del);
+      const editBtn=document.createElement('button');
+      editBtn.className='goal-btn';editBtn.style.cssText='background:transparent;color:var(--m);border:1px solid var(--b);margin-left:6px;font-size:10px;';
+      editBtn.textContent='수정';
+      editBtn.onclick=()=>openGoalModal(true,g.goal);
+      el.appendChild(editBtn);
+      const delBtn=document.createElement('button');
+      delBtn.className='goal-btn';delBtn.style.cssText='background:transparent;color:#E74040;border:1px solid #FFBABA;margin-left:6px;font-size:10px;';
+      delBtn.textContent='삭제';
+      delBtn.onclick=()=>{
+        if(!confirm('목표를 삭제할까요?'))return;
+        db.ref('wcl/goals/'+mkey(new Date())+'/'+ME).remove()
+          .then(()=>toast('목표가 삭제됐어요.'))
+          .catch(e=>toast('오류: '+e.message));
+      };
+      el.appendChild(delBtn);
     }
     list.appendChild(el);
   });
