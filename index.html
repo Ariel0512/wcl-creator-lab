@@ -1190,12 +1190,27 @@ function renderMemberList(){
         '<div style="font-size:10px;color:var(--m);">'+joinStr+'</div>'+
         '<div style="font-size:10px;color:var(--p);font-weight:600;margin-top:2px;">💳 '+msType+' '+msPrice+'</div>'+
         (badgeHTML?'<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;">'+badgeHTML+'</div>':'')+
-      '</div>'+
-      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">'+
-        '<div style="text-align:right;"><div style="font-family:Nunito,sans-serif;font-size:16px;font-weight:900;color:var(--p);">'+cnt+'</div><div style="font-size:9px;color:var(--m);">이번달</div></div>'+
-        (ME==='국밥수달'?'<button onclick="event.stopPropagation();openMsEdit(\''+n+'\')" style="font-size:10px;padding:3px 8px;border-radius:7px;background:var(--pl);color:var(--p);border:1px solid var(--pb);cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;font-weight:700;">구독설정</button>':'')+
-        (ME==='국밥수달'&&n!=='국밥수달'?'<button onclick="event.stopPropagation();deleteMember(\''+n+'\')" style="font-size:10px;padding:3px 8px;border-radius:7px;background:transparent;color:#E74040;border:1px solid #FFBABA;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;font-weight:700;">삭제</button>':'')+
       '</div>';
+
+    // 오른쪽 버튼 영역 - DOM으로 직접 생성
+    const right=document.createElement('div');
+    right.style.cssText='display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;';
+    right.innerHTML='<div style="text-align:right;"><div style="font-family:Nunito,sans-serif;font-size:16px;font-weight:900;color:var(--p);">'+cnt+'</div><div style="font-size:9px;color:var(--m);">이번달</div></div>';
+    if(ME==='국밥수달'){
+      const msBtn=document.createElement('button');
+      msBtn.textContent='구독설정';
+      msBtn.style.cssText='font-size:10px;padding:3px 8px;border-radius:7px;background:var(--pl);color:var(--p);border:1px solid var(--pb);cursor:pointer;font-family:"Noto Sans KR",sans-serif;font-weight:700;';
+      msBtn.addEventListener('click',e=>{e.stopPropagation();openMsEdit(n);});
+      right.appendChild(msBtn);
+      if(n!=='국밥수달'){
+        const delBtn=document.createElement('button');
+        delBtn.textContent='삭제';
+        delBtn.style.cssText='font-size:10px;padding:3px 8px;border-radius:7px;background:transparent;color:#E74040;border:1px solid #FFBABA;cursor:pointer;font-family:"Noto Sans KR",sans-serif;font-weight:700;';
+        delBtn.addEventListener('click',e=>{e.stopPropagation();deleteMember(n);});
+        right.appendChild(delBtn);
+      }
+    }
+    row.appendChild(right);
     list.appendChild(row);
   });
 }
