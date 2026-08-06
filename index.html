@@ -295,10 +295,12 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
         </div>
       </div>
       <!-- 이달의 목표 -->
-      <div style="background:var(--pl);border-left:3px solid var(--p);border-radius:0 10px 10px 0;padding:10px 12px;margin-bottom:14px;text-align:left;">
+      <div style="background:var(--pl);border-left:3px solid var(--p);border-radius:0 10px 10px 0;padding:10px 12px;margin-bottom:10px;text-align:left;">
         <div style="font-size:9px;font-weight:700;color:var(--p);margin-bottom:4px;">🎯 이달의 목표</div>
         <div id="pm-goal" style="font-size:13px;font-weight:700;color:var(--t);line-height:1.5;"></div>
       </div>
+      <!-- 멤버십 정보 -->
+      <div id="pm-membership" style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1.5px solid var(--pb);border-radius:10px;padding:9px 14px;margin-bottom:14px;"></div>
       <button class="btn-go" onclick="closeProfileModal()" style="width:100%;border-radius:12px;">닫기</button>
     </div>
   </div>
@@ -388,17 +390,6 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
       <a href="https://www.instagram.com/gukbap_otter?igsh=Zm9wazJkZG5lcWkx&utm_source=qr" target="_blank" class="ql"><span class="qi">📸</span><div><div class="qt">국밥수달 인스타</div><div class="qs">인스타그램 보러가기</div></div></a>
       <a href="https://open.kakao.com/o/gE43ofDi" target="_blank" class="ql"><span class="qi">💬</span><div><div class="qt">WCL 단톡방</div><div class="qs">카카오톡 오픈채팅</div></div></a>
       <a href="https://open.kakao.com/me/Gukbap_otter" target="_blank" class="ql"><span class="qi">🦦</span><div><div class="qt">국밥수달 고객센터</div><div class="qs">1:1 카카오 문의</div></div></a>
-    </div>
-
-    <!-- MEMBERSHIP -->
-    <div class="card" style="border:1.5px solid var(--pb);">
-      <div class="ctitle">📌 멤버십</div>
-      <div style="font-size:13px;display:flex;flex-direction:column;gap:0;">
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--b);"><span style="color:var(--m);font-weight:600;">월 구독료</span><span style="font-weight:900;color:var(--p);">₩28,000</span></div>
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--b);"><span style="color:var(--m);font-weight:600;">미션 주기</span><span style="font-weight:700;">2일 1포스팅</span></div>
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--b);"><span style="color:var(--m);font-weight:600;">오프라인</span><span style="font-weight:700;">2주 1회</span></div>
-        <div style="display:flex;justify-content:space-between;padding:8px 0;"><span style="color:var(--m);font-weight:600;">교육생 참여</span><span style="font-weight:700;color:var(--g);">무료 ✓</span></div>
-      </div>
     </div>
 
     <!-- RULES -->
@@ -522,7 +513,7 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
 <div class="overlay" id="achieve-modal">
   <div class="modal">
     <h3>🏆 목표 달성 인증!</h3>
-    <label>인증 링크 (선택)</label>
+    <label>인증 링크 <span style="color:#E74040;font-weight:700;">(필수)</span></label>
     <input type="url" id="achieve-url" placeholder="https://instagram.com/..."/>
     <div class="mbtns">
       <button class="btn-cancel" onclick="closeAchieveModal()">취소</button>
@@ -648,11 +639,14 @@ function startDashboard(){
 
   db.ref('wcl/members').on('value',snap=>{
     allMembers=snap.val()||{};
-    // 내 입단일 자동 기록 (없을 때만)
     if(!allMembers[ME]){
       db.ref('wcl/members/'+ME).set({joinedAt:Date.now()});
     }
     renderProfiles();
+    renderGoals();
+    renderLB();
+    renderChatRank();
+    if(selWeekDay) showDayPanel(selWeekDay, new Date(selWeekDay), false);
   });
 
   db.ref('wcl/badges').on('value',snap=>{
@@ -1072,6 +1066,15 @@ function openProfileModal(n, certCounts){
   else if(goal) goalIcon.textContent='🔥';
   else goalIcon.textContent='—';
 
+  // 멤버십
+  const msEl=document.getElementById('pm-membership');
+  if(msEl){
+    const msType=mem?.membershipType||'월 구독';
+    const msPrice=mem?.membershipPrice!=null?'₩'+Number(mem.membershipPrice).toLocaleString():'₩28,000';
+    msEl.innerHTML='<span style="font-size:11px;font-weight:700;color:var(--m);">💳 멤버십</span>'+
+      '<span style="font-size:12px;font-weight:900;color:var(--p);">'+msType+' <span style="font-weight:700;color:var(--t);">'+msPrice+'</span></span>';
+  }
+
   document.getElementById('profile-modal').classList.add('open');
 }
 function closeProfileModal(){document.getElementById('profile-modal').classList.remove('open');}
@@ -1129,6 +1132,9 @@ function renderMemberList(){
       return '<span class="badge badge-custom">'+b.label+'</span>';
     }).join('');
 
+    const msType=mem.membershipType||'월 구독';
+    const msPrice=mem.membershipPrice!=null?'₩'+Number(mem.membershipPrice).toLocaleString():'₩28,000';
+
     const row=document.createElement('div');
     row.style.cssText='display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:11px;border:1px solid var(--b);margin-bottom:7px;cursor:pointer;transition:background .15s;';
     row.onmouseover=()=>row.style.background='var(--pl)';
@@ -1139,14 +1145,28 @@ function renderMemberList(){
       '<div style="flex:1;min-width:0;">'+
         '<div style="font-size:13px;font-weight:700;">'+n+(n===ME?' <span style="font-size:9px;color:var(--p);">나</span>':'')+'</div>'+
         '<div style="font-size:10px;color:var(--m);">'+joinStr+'</div>'+
+        '<div style="font-size:10px;color:var(--p);font-weight:600;margin-top:2px;">💳 '+msType+' '+msPrice+'</div>'+
         (badgeHTML?'<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;">'+badgeHTML+'</div>':'')+
       '</div>'+
-      '<div style="text-align:right;flex-shrink:0;">'+
-        '<div style="font-family:Nunito,sans-serif;font-size:16px;font-weight:900;color:var(--p);">'+cnt+'</div>'+
-        '<div style="font-size:9px;color:var(--m);">이번달</div>'+
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">'+
+        '<div style="text-align:right;"><div style="font-family:Nunito,sans-serif;font-size:16px;font-weight:900;color:var(--p);">'+cnt+'</div><div style="font-size:9px;color:var(--m);">이번달</div></div>'+
+        (ME==='국밥수달'?'<button onclick="event.stopPropagation();openMsEdit(\''+n+'\')" style="font-size:10px;padding:3px 8px;border-radius:7px;background:var(--pl);color:var(--p);border:1px solid var(--pb);cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;font-weight:700;">구독설정</button>':'')+
       '</div>';
     list.appendChild(row);
   });
+}
+
+// ── MEMBERSHIP EDIT (admin) ──
+function openMsEdit(name){
+  const mem=allMembers[name]||{};
+  const type=prompt('구독 유형 입력\n(예: 월 구독, 3개월 구독, 6개월 구독, 년 구독)',mem.membershipType||'월 구독');
+  if(type===null)return;
+  const priceInput=prompt('구독료 입력 (숫자만, 예: 28000)',mem.membershipPrice!=null?String(mem.membershipPrice):'28000');
+  if(priceInput===null)return;
+  const price=parseInt(priceInput)||28000;
+  db.ref('wcl/members/'+name).update({membershipType:type.trim(),membershipPrice:price})
+    .then(()=>{toast(name+' 구독 정보 업데이트 완료!');renderMemberList();})
+    .catch(e=>toast('오류: '+e.message));
 }
 
 // ── PROFILE EDIT ──
@@ -1333,9 +1353,10 @@ function openAchieveModal(name){
 function closeAchieveModal(){document.getElementById('achieve-modal').classList.remove('open');}
 function submitAchieve(){
   const url=document.getElementById('achieve-url').value.trim();
+  if(!url){toast('인증 링크를 입력해주세요! (필수)');return;}
   const mk=mkey(new Date());
   const data=Object.assign({},allGoals[achieveTarget]||{},{achieved:true,achievedTs:Date.now()});
-  if(url)data.proofUrl=url;
+  data.proofUrl=url;
   db.ref('wcl/goals/'+mk+'/'+achieveTarget).set(data)
     .then(()=>{closeAchieveModal();toast('목표 달성 인증 완료! 🎉');})
     .catch(e=>toast('오류: '+e.message));
