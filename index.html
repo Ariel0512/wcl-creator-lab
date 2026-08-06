@@ -22,6 +22,8 @@ a{text-decoration:none;color:inherit;}
 .nm-card input:focus{border-color:var(--p);}
 .nm-card button{width:100%;background:var(--p);color:white;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:"Noto Sans KR",sans-serif;}
 .nm-card button:hover{background:#D4308A;}
+.nm-back{width:100%;background:transparent;color:#999;border:none;font-size:12px;cursor:pointer;padding:6px;margin-top:4px;font-family:'Noto Sans KR',sans-serif;}
+.nm-back:hover{background:transparent;color:var(--p);}
 
 /* HEADER */
 header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
@@ -235,11 +237,33 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
 <!-- NICK MODAL -->
 <div id="nick-modal">
   <div class="nm-card">
-    <div style="font-size:36px;margin-bottom:10px;">👋</div>
-    <h2>WCL에 오신 걸 환영해요!</h2>
-    <p>커뮤니티에서 사용할 닉네임을 입력해 주세요.<br/>한 번만 입력하면 이후에는 자동으로 로그인돼요.</p>
-    <input type="text" id="nick-input" placeholder="닉네임 입력..." maxlength="10" onkeydown="if(event.key==='Enter')saveNick()"/>
-    <button onclick="saveNick()">시작하기 →</button>
+    <!-- Step 1: 닉네임 입력 -->
+    <div id="nm-step1">
+      <div style="font-size:36px;margin-bottom:10px;">👋</div>
+      <h2>WCL에 오신 걸 환영해요!</h2>
+      <p>커뮤니티에서 사용할 닉네임을 입력해 주세요.</p>
+      <input type="text" id="nick-input" placeholder="닉네임 입력..." maxlength="10" onkeydown="if(event.key==='Enter')checkNick()"/>
+      <button onclick="checkNick()">다음 →</button>
+    </div>
+    <!-- Step 2a: PIN 입력 (기존 멤버) -->
+    <div id="nm-step-pin" style="display:none;">
+      <div style="font-size:36px;margin-bottom:10px;">🔐</div>
+      <h2>PIN 입력</h2>
+      <p id="nm-pin-who" style="margin-bottom:18px;"></p>
+      <input type="password" id="pin-input" placeholder="4자리 숫자 PIN" maxlength="4" inputmode="numeric" pattern="[0-9]*" onkeydown="if(event.key==='Enter')verifyPin()"/>
+      <button onclick="verifyPin()">확인 →</button>
+      <button class="nm-back" onclick="backToNick()">← 닉네임 다시 입력</button>
+    </div>
+    <!-- Step 2b: PIN 설정 (신규/PIN 미설정) -->
+    <div id="nm-step-setup" style="display:none;">
+      <div style="font-size:36px;margin-bottom:10px;">🔑</div>
+      <h2>PIN 설정</h2>
+      <p>처음 로그인이에요! 앞으로 로그인할 때 사용할 4자리 숫자 PIN을 설정해 주세요.</p>
+      <input type="password" id="pin-setup1" placeholder="PIN 입력..." maxlength="4" inputmode="numeric" pattern="[0-9]*" onkeydown="if(event.key==='Enter')document.getElementById('pin-setup2').focus()"/>
+      <input type="password" id="pin-setup2" placeholder="PIN 확인..." maxlength="4" inputmode="numeric" pattern="[0-9]*" onkeydown="if(event.key==='Enter')setupPin()"/>
+      <button onclick="setupPin()">PIN 설정 완료 →</button>
+      <button class="nm-back" onclick="backToNick()">← 닉네임 다시 입력</button>
+    </div>
   </div>
 </div>
 
@@ -568,7 +592,9 @@ function mkey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0
 
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 
-// ── NICKNAME ──
+// ── NICKNAME / PIN ──
+let pendingNick='';
+
 function initApp(){
   ME=localStorage.getItem('wcl_nick')||'';
   if(!ME){
@@ -578,13 +604,66 @@ function initApp(){
     startDashboard();
   }
 }
-function saveNick(){
+
+function checkNick(){
   const v=document.getElementById('nick-input').value.trim();
   if(!v){toast('닉네임을 입력해 주세요!');return;}
-  ME=v;localStorage.setItem('wcl_nick',ME);
+  pendingNick=v;
+  document.getElementById('nm-step1').style.display='none';
+  db.ref('wcl/members/'+v+'/pin').once('value',snap=>{
+    const pin=snap.val();
+    if(pin){
+      document.getElementById('nm-pin-who').textContent=v+'님, PIN을 입력해 주세요.';
+      document.getElementById('pin-input').value='';
+      document.getElementById('nm-step-pin').style.display='';
+      setTimeout(()=>document.getElementById('pin-input').focus(),50);
+    } else {
+      document.getElementById('pin-setup1').value='';
+      document.getElementById('pin-setup2').value='';
+      document.getElementById('nm-step-setup').style.display='';
+      setTimeout(()=>document.getElementById('pin-setup1').focus(),50);
+    }
+  });
+}
+
+function verifyPin(){
+  const entered=document.getElementById('pin-input').value.trim();
+  if(!/^\d{4}$/.test(entered)){toast('4자리 숫자를 입력해 주세요!');return;}
+  db.ref('wcl/members/'+pendingNick+'/pin').once('value',snap=>{
+    if(entered===String(snap.val())){
+      loginSuccess();
+    } else {
+      toast('PIN이 틀렸어요! 다시 입력해 주세요.');
+      document.getElementById('pin-input').value='';
+      document.getElementById('pin-input').focus();
+    }
+  });
+}
+
+function setupPin(){
+  const p1=document.getElementById('pin-setup1').value.trim();
+  const p2=document.getElementById('pin-setup2').value.trim();
+  if(!/^\d{4}$/.test(p1)){toast('4자리 숫자로 PIN을 설정해 주세요!');return;}
+  if(p1!==p2){toast('PIN이 일치하지 않아요!');document.getElementById('pin-setup2').focus();return;}
+  db.ref('wcl/members/'+pendingNick+'/pin').set(p1)
+    .then(()=>loginSuccess())
+    .catch(e=>toast('오류: '+e.message));
+}
+
+function loginSuccess(){
+  ME=pendingNick;
+  localStorage.setItem('wcl_nick',ME);
   document.getElementById('nick-modal').classList.remove('show');
   startDashboard();
 }
+
+function backToNick(){
+  document.getElementById('nm-step-pin').style.display='none';
+  document.getElementById('nm-step-setup').style.display='none';
+  document.getElementById('nm-step1').style.display='';
+  document.getElementById('nick-input').focus();
+}
+
 function changeNick(){
   const v=prompt('닉네임 변경 (현재: '+ME+')');
   if(v&&v.trim()){
@@ -593,6 +672,8 @@ function changeNick(){
     document.getElementById('btn-add-sched').style.display=ME==='국밥수달'?'block':'none';
     document.getElementById('btn-update-chat').style.display=ME==='국밥수달'?'block':'none';
     document.getElementById('btn-member-list').style.display=ME==='국밥수달'?'block':'none';
+    if(!(allMembers[ME]&&allMembers[ME].joinedAt)){ db.ref('wcl/members/'+ME).update({joinedAt:Date.now()}); }
+    renderProfiles();renderGoals();renderLB();renderChatRank();
     toast('닉네임 변경됐어요!');
   }
 }
@@ -652,8 +733,8 @@ function startDashboard(){
 
   db.ref('wcl/members').on('value',snap=>{
     allMembers=snap.val()||{};
-    if(!allMembers[ME]){
-      db.ref('wcl/members/'+ME).set({joinedAt:Date.now()});
+    if(ME&&!(allMembers[ME]&&allMembers[ME].joinedAt)){
+      db.ref('wcl/members/'+ME).update({joinedAt:Date.now()});
     }
     renderProfiles();
     renderGoals();
@@ -1147,13 +1228,10 @@ function renderMemberList(){
     Object.keys(dc).forEach(n=>{certCounts[n]=(certCounts[n]||0)+1;});
   });
 
-  // 전체 멤버: memberlist 기준 + 활동 멤버 합산
+  // 전체 멤버: memberlist + members만 기준 (certs/goals 등 제외해야 삭제 시 즉시 반영)
   const nameSet=new Set([
     ...allMemberList,
     ...Object.keys(allMembers),
-    ...Object.keys(certCounts),
-    ...Object.keys(allChatCounts),
-    ...Object.keys(allGoals),
   ]);
   let names=[...nameSet].sort((a,b)=>(certCounts[b]||0)-(certCounts[a]||0));
   if(query) names=names.filter(n=>n.toLowerCase().includes(query));
@@ -1219,11 +1297,24 @@ function renderMemberList(){
         delBtn.style.cssText='font-size:10px;padding:3px 8px;border-radius:7px;background:transparent;color:#E74040;border:1px solid #FFBABA;cursor:pointer;font-family:"Noto Sans KR",sans-serif;font-weight:700;';
         delBtn.addEventListener('click',e=>{e.stopPropagation();deleteMember(n);});
         right.appendChild(delBtn);
+        const pinBtn=document.createElement('button');
+        pinBtn.textContent='PIN초기화';
+        pinBtn.style.cssText='font-size:10px;padding:3px 8px;border-radius:7px;background:transparent;color:#999;border:1px solid #ddd;cursor:pointer;font-family:"Noto Sans KR",sans-serif;font-weight:700;';
+        pinBtn.addEventListener('click',e=>{e.stopPropagation();resetMemberPin(n);});
+        right.appendChild(pinBtn);
       }
     }
     row.appendChild(right);
     list.appendChild(row);
   });
+}
+
+// ── PIN RESET (admin) ──
+function resetMemberPin(name){
+  if(!confirm(name+'의 PIN을 초기화할까요?\n다음 로그인 시 새 PIN을 설정하게 됩니다.'))return;
+  db.ref('wcl/members/'+name+'/pin').remove()
+    .then(()=>toast(name+' PIN 초기화 완료!'))
+    .catch(e=>toast('오류: '+e.message));
 }
 
 // ── DELETE MEMBER (admin) ──
