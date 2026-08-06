@@ -158,6 +158,24 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
 .rw-d{font-size:11px;color:var(--m);line-height:1.6;}
 .rw-p{font-size:11px;font-weight:700;color:var(--p);margin-top:5px;}
 
+/* PROFILE EDIT */
+.color-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-bottom:14px;}
+.color-dot{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;flex-shrink:0;}
+.color-dot:hover{transform:scale(1.15);}
+.color-dot.selected{border-color:#1A1A1A;transform:scale(1.15);}
+.emoji-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px;}
+.emoji-opt{font-size:20px;text-align:center;padding:5px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all .15s;}
+.emoji-opt:hover{background:var(--pl);}
+.emoji-opt.selected{background:var(--pl);border-color:var(--p);}
+.pc-bio{font-size:10px;color:var(--m);margin-top:3px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;}
+.pm-bio{font-size:13px;color:#555;line-height:1.65;}
+
+/* GOAL QUOTE */
+.goal-quote{background:var(--pl);border-left:4px solid var(--p);border-radius:0 10px 10px 0;padding:14px 16px;margin-bottom:10px;}
+.goal-quote-text{font-size:16px;font-weight:800;color:var(--t);line-height:1.5;}
+.goal-quote::before{content:'"';font-size:28px;font-family:"Nunito",sans-serif;color:var(--p);line-height:0;vertical-align:-10px;margin-right:3px;}
+.goal-quote::after{content:'"';font-size:28px;font-family:"Nunito",sans-serif;color:var(--p);line-height:0;vertical-align:-10px;margin-left:3px;}
+
 /* CHAT KING */
 .ck-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;border:1px solid var(--b);margin-bottom:5px;}
 .ck-rank{font-family:"Nunito",sans-serif;font-size:13px;font-weight:900;width:22px;text-align:center;flex-shrink:0;}
@@ -200,6 +218,7 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
 .badge-chat{background:linear-gradient(135deg,#F13C90,#FF6BB0);color:white;}
 .badge-cert{background:linear-gradient(135deg,#6BCB77,#14B8A6);color:white;}
 .badge-custom{background:var(--pl);color:var(--p);border:1px solid var(--pb);}
+.badge-founding{background:linear-gradient(135deg,#F59E0B,#FBBF24);color:white;}
 
 @media(max-width:768px){
   .wrap{grid-template-columns:1fr;}
@@ -238,32 +257,47 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
 <div class="profiles-row" id="profiles-row"></div>
 
 <!-- PROFILE DETAIL MODAL -->
-<div class="overlay" id="profile-modal">
-  <div class="modal" style="max-width:340px;">
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-      <div id="pm-av" style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:white;flex-shrink:0;"></div>
-      <div>
-        <div id="pm-name" style="font-size:17px;font-weight:900;margin-bottom:3px;"></div>
-        <div id="pm-since" style="font-size:10px;color:var(--m);font-weight:600;"></div>
-        <div id="pm-badges" style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;"></div>
+<div class="overlay" id="profile-modal" onclick="if(event.target===this)closeProfileModal()">
+  <div class="modal" style="max-width:320px;padding:0;overflow:hidden;border-radius:22px;">
+    <!-- 커버 배너 -->
+    <div id="pm-cover" style="height:90px;background:linear-gradient(135deg,var(--p),var(--p2));position:relative;">
+      <!-- 아바타 + 무지개 링 -->
+      <div style="position:absolute;bottom:-32px;left:50%;transform:translateX(-50%);">
+        <div id="pm-ring" style="width:72px;height:72px;border-radius:50%;padding:3px;background:conic-gradient(#F13C90,#FF9E5E,#FFB347,#6BCB77,#4D96FF,#A855F7,#F13C90);display:flex;align-items:center;justify-content:center;">
+          <div id="pm-av" style="width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:white;border:3px solid white;"></div>
+        </div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-      <div style="background:var(--pl);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--pb);">
-        <div id="pm-cert-cnt" style="font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;color:var(--p);line-height:1;"></div>
-        <div style="font-size:10px;color:var(--m);margin-top:2px;">이번달 인증</div>
+    <!-- 본문 -->
+    <div style="padding:44px 20px 20px;text-align:center;">
+      <div id="pm-name" style="font-size:18px;font-weight:900;margin-bottom:3px;"></div>
+      <div id="pm-since" style="font-size:10px;color:var(--m);margin-bottom:8px;"></div>
+      <div id="pm-badges" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-bottom:12px;"></div>
+      <!-- 소개 -->
+      <div id="pm-bio" style="font-size:12px;color:#666;line-height:1.65;margin-bottom:8px;text-align:left;background:var(--bg);border-radius:10px;padding:10px 12px;"></div>
+      <div id="pm-insta" style="margin-bottom:12px;"></div>
+      <!-- 스탯 3열 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--b);border-radius:12px;overflow:hidden;margin-bottom:14px;">
+        <div style="background:white;padding:10px 6px;text-align:center;">
+          <div id="pm-cert-cnt" style="font-family:'Nunito',sans-serif;font-size:20px;font-weight:900;color:var(--p);"></div>
+          <div style="font-size:9px;color:var(--m);margin-top:1px;">이번달 인증</div>
+        </div>
+        <div style="background:white;padding:10px 6px;text-align:center;">
+          <div id="pm-streak" style="font-family:'Nunito',sans-serif;font-size:20px;font-weight:900;color:var(--p);"></div>
+          <div style="font-size:9px;color:var(--m);margin-top:1px;">연속 인증</div>
+        </div>
+        <div style="background:white;padding:10px 6px;text-align:center;">
+          <div id="pm-goal-icon" style="font-size:20px;line-height:1.3;"></div>
+          <div style="font-size:9px;color:var(--m);margin-top:1px;">목표 상태</div>
+        </div>
       </div>
-      <div style="background:var(--pl);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--pb);">
-        <div id="pm-streak" style="font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;color:var(--p);line-height:1;"></div>
-        <div style="font-size:10px;color:var(--m);margin-top:2px;">연속 인증</div>
+      <!-- 이달의 목표 -->
+      <div style="background:var(--pl);border-left:3px solid var(--p);border-radius:0 10px 10px 0;padding:10px 12px;margin-bottom:14px;text-align:left;">
+        <div style="font-size:9px;font-weight:700;color:var(--p);margin-bottom:4px;">🎯 이달의 목표</div>
+        <div id="pm-goal" style="font-size:13px;font-weight:700;color:var(--t);line-height:1.5;"></div>
       </div>
+      <button class="btn-go" onclick="closeProfileModal()" style="width:100%;border-radius:12px;">닫기</button>
     </div>
-    <div style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:14px;">
-      <div style="font-size:10px;font-weight:700;color:var(--m);margin-bottom:5px;">🎯 이달의 목표</div>
-      <div id="pm-goal" style="font-size:13px;color:var(--t);line-height:1.6;"></div>
-      <div id="pm-goal-status" style="margin-top:6px;font-size:11px;font-weight:700;"></div>
-    </div>
-    <button class="btn-go" onclick="closeProfileModal()" style="width:100%;">닫기</button>
   </div>
 </div>
 
@@ -382,6 +416,25 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- PROFILE EDIT MODAL -->
+<div class="overlay" id="profile-edit-modal">
+  <div class="modal" style="max-width:420px;max-height:90vh;overflow-y:auto;">
+    <h3>✨ 프로필 꾸미기</h3>
+    <label>이모지 선택</label>
+    <div class="emoji-grid" id="emoji-grid"></div>
+    <label>색상 선택</label>
+    <div class="color-grid" id="color-grid"></div>
+    <label>본인 소개 (인스타 주제/컨셉)</label>
+    <textarea id="pe-bio" rows="3" placeholder="예: 일상 브이로그 + 패션 콘텐츠로 20대 여성 타겟 운영 중!"></textarea>
+    <label>인스타그램 계정 링크</label>
+    <input type="url" id="pe-insta" placeholder="https://www.instagram.com/아이디"/>
+    <div class="mbtns">
+      <button class="btn-cancel" onclick="closeProfileEdit()">취소</button>
+      <button class="btn-go" onclick="saveProfileEdit()">저장하기</button>
+    </div>
   </div>
 </div>
 
@@ -672,7 +725,7 @@ function showDayPanel(key,d,updateSel=true){
     const el=document.createElement('div');el.className='tp-item';
     el.innerHTML=
       '<div class="ti-name">'+
-        '<span onclick="openProfileModal(\''+n+'\',null)" style="width:22px;height:22px;border-radius:50%;background:'+gc(n)+';display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:white;font-weight:800;flex-shrink:0;cursor:pointer;" title="'+n+' 프로필 보기">'+n.charAt(0)+'</span>'+
+        '<span onclick="openProfileModal(\''+n+'\',null)" style="width:22px;height:22px;border-radius:50%;background:'+avColor(n)+';display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:white;font-weight:800;flex-shrink:0;cursor:pointer;" title="'+n+' 프로필 보기">'+avContent(n)+'</span>'+
         '<span onclick="openProfileModal(\''+n+'\',null)" style="cursor:pointer;">'+n+'</span>'+
         '<span class="ti-time">'+(c.time||'')+'</span>'+
         (isMe?'<button onclick="openEditCertModal(\''+key+'\')" style="margin-left:auto;background:transparent;border:1px solid var(--b);border-radius:6px;padding:2px 8px;font-size:10px;color:var(--m);cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">수정</button>':'')+
@@ -762,7 +815,7 @@ function renderCommunityFeed(){
   entries.forEach(([n,c])=>{
     const div=document.createElement('div');div.className='cf-item';
     div.innerHTML=
-      '<div class="cf-av" style="background:'+gc(n)+'">'+n.charAt(0)+'</div>'+
+      '<div class="cf-av" style="background:'+avColor(n)+'">'+avContent(n)+'</div>'+
       '<div class="cf-body">'+
         '<span class="cf-name">'+n+'</span>'+
         '<span class="cf-time">'+(c.time||'')+'</span>'+
@@ -878,7 +931,7 @@ function renderLB(){
     const el=document.createElement('div');el.className='lb-item';
     el.style.cursor='pointer';
     el.innerHTML='<div class="lb-rank">'+(medals[i]||(i+1))+'</div>'+
-      '<div class="lb-av" style="background:'+gc(n)+'">'+n.charAt(0)+'</div>'+
+      '<div class="lb-av" style="background:'+avColor(n)+'">'+avContent(n)+'</div>'+
       '<div class="lb-name">'+n+'</div>'+
       (streaks[n]>0?'<div class="lb-str">🔥'+streaks[n]+'일</div>':'')+
       '<div class="lb-cnt"><div class="n">'+cnt+'</div><div class="s">회</div></div>';
@@ -907,7 +960,7 @@ function renderProfiles(){
   const badgeHTML=badges.map(b=>{
     if(b.type==='admin') return '<span class="badge badge-admin">'+b.label+'</span>';
     if(b.type==='chat')  return '<span class="badge badge-chat">'+b.label+'</span>';
-    if(b.type==='cert')  return '<span class="badge badge-cert">'+b.label+'</span>';
+    if(b.type==='cert')  return '<span class="badge badge-cert">'+b.label+'</span>';if(b.type==='founding')return '<span class="badge badge-founding">'+b.label+'</span>';
     return '<span class="badge badge-custom">'+b.label+'</span>';
   }).join('');
 
@@ -926,6 +979,15 @@ function renderProfiles(){
       (badgeHTML?'<div class="pc-badges" style="margin-top:5px;">'+badgeHTML+'</div>':'')+
     '</div>';
   card.onclick=()=>openProfileModal(ME,null);
+
+  // 꾸미기 버튼 (우측 하단)
+  const editBtn=document.createElement('button');
+  editBtn.textContent='✏️ 꾸미기';
+  editBtn.style.cssText='position:absolute;right:14px;bottom:14px;background:var(--pl);color:var(--p);border:1px solid var(--pb);border-radius:8px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:"Noto Sans KR",sans-serif;';
+  editBtn.onclick=(e)=>{e.stopPropagation();openProfileEdit();};
+  card.style.position='relative';
+  card.appendChild(editBtn);
+
   row.appendChild(card);
 }
 
@@ -944,12 +1006,14 @@ function openProfileModal(n, certCounts){
 
   const badges=allBadges[n]||[];
   const goal=allGoals[n];
-  const color=gc(n);
-
-  document.getElementById('pm-av').style.background=color;
-  document.getElementById('pm-av').textContent=n.charAt(0);
-  document.getElementById('pm-name').textContent=n;
   const mem=allMembers[n];
+
+  const col=avColor(n);
+  document.getElementById('pm-cover').style.background='linear-gradient(135deg,'+col+','+col+'aa)';
+  document.getElementById('pm-av').style.background=col;
+  document.getElementById('pm-av').textContent=avContent(n);
+  document.getElementById('pm-name').textContent=n;
+
   let joinStr='입단일 미등록';
   if(mem?.joinedAt){
     const jd=new Date(mem.joinedAt);
@@ -961,18 +1025,84 @@ function openProfileModal(n, certCounts){
   document.getElementById('pm-badges').innerHTML=badges.map(b=>{
     if(b.type==='admin') return '<span class="badge badge-admin">'+b.label+'</span>';
     if(b.type==='chat')  return '<span class="badge badge-chat">'+b.label+'</span>';
-    if(b.type==='cert')  return '<span class="badge badge-cert">'+b.label+'</span>';
+    if(b.type==='cert')  return '<span class="badge badge-cert">'+b.label+'</span>';if(b.type==='founding')return '<span class="badge badge-founding">'+b.label+'</span>';
     return '<span class="badge badge-custom">'+b.label+'</span>';
   }).join('');
-  document.getElementById('pm-goal').textContent=goal?.goal||'아직 이번달 목표를 등록하지 않았어요.';
-  const statusEl=document.getElementById('pm-goal-status');
-  if(goal?.achieved) statusEl.innerHTML='<span style="color:#22C55E;">✅ 달성 완료!</span>';
-  else if(goal) statusEl.innerHTML='<span style="color:var(--p);">🔥 도전 중</span>';
-  else statusEl.innerHTML='';
+
+  // 소개 + 인스타
+  const bioEl=document.getElementById('pm-bio');
+  if(bioEl) bioEl.textContent=mem?.bio||'소개가 없어요.';
+  const instaEl=document.getElementById('pm-insta');
+  if(instaEl){
+    if(mem?.insta) instaEl.innerHTML='<a href="'+mem.insta+'" target="_blank" style="color:var(--p);font-weight:700;font-size:12px;">📸 인스타그램 보러가기 →</a>';
+    else instaEl.innerHTML='';
+  }
+
+  // 목표
+  document.getElementById('pm-goal').textContent=goal?.goal||'아직 이번달 목표가 없어요.';
+  const goalIcon=document.getElementById('pm-goal-icon');
+  if(goal?.achieved) goalIcon.textContent='✅';
+  else if(goal) goalIcon.textContent='🔥';
+  else goalIcon.textContent='—';
 
   document.getElementById('profile-modal').classList.add('open');
 }
 function closeProfileModal(){document.getElementById('profile-modal').classList.remove('open');}
+
+// ── PROFILE EDIT ──
+const PALETTE=['#F13C90','#FF6BB0','#FF9E5E','#FFB347','#6BCB77','#4D96FF','#A855F7','#14B8A6','#F97316','#06B6D4','#8B5CF6','#EC4899','#EF4444','#F59E0B','#10B981','#3B82F6'];
+const EMOJIS=['🐰','🦦','🐻','🐼','🐨','🦊','🐺','🐸','🐙','🦋','🌸','🌙','⭐','🔥','💎','👑','🎀','🌈','🍀','🎯','💫','🌺','🐠','🦄'];
+let peColor='', peEmoji='';
+
+function openProfileEdit(){
+  const mem=allMembers[ME]||{};
+  peColor=mem.color||gc(ME);
+  peEmoji=mem.emoji||'';
+  document.getElementById('pe-bio').value=mem.bio||'';
+  document.getElementById('pe-insta').value=mem.insta||'';
+
+  // 색상 그리드
+  const cg=document.getElementById('color-grid');
+  cg.innerHTML='';
+  PALETTE.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='color-dot'+(c===peColor?' selected':'');
+    d.style.background=c;
+    d.onclick=()=>{peColor=c;cg.querySelectorAll('.color-dot').forEach(x=>x.classList.remove('selected'));d.classList.add('selected');};
+    cg.appendChild(d);
+  });
+
+  // 이모지 그리드
+  const eg=document.getElementById('emoji-grid');
+  eg.innerHTML='';
+  EMOJIS.forEach(e=>{
+    const d=document.createElement('div');
+    d.className='emoji-opt'+(e===peEmoji?' selected':'');
+    d.textContent=e;
+    d.onclick=()=>{peEmoji=e;eg.querySelectorAll('.emoji-opt').forEach(x=>x.classList.remove('selected'));d.classList.add('selected');};
+    eg.appendChild(d);
+  });
+  // "없음" 옵션
+  const none=document.createElement('div');
+  none.className='emoji-opt'+(peEmoji===''?' selected':'');
+  none.textContent='✕';none.title='이모지 없음';
+  none.onclick=()=>{peEmoji='';eg.querySelectorAll('.emoji-opt').forEach(x=>x.classList.remove('selected'));none.classList.add('selected');};
+  eg.prepend(none);
+
+  document.getElementById('profile-edit-modal').classList.add('open');
+}
+function closeProfileEdit(){document.getElementById('profile-edit-modal').classList.remove('open');}
+function saveProfileEdit(){
+  const bio=document.getElementById('pe-bio').value.trim();
+  const insta=document.getElementById('pe-insta').value.trim();
+  const existing=allMembers[ME]||{};
+  db.ref('wcl/members/'+ME).set({...existing, color:peColor, emoji:peEmoji, bio, insta})
+    .then(()=>{closeProfileEdit();toast('프로필 저장됐어요! ✨');})
+    .catch(e=>toast('오류: '+e.message));
+}
+
+function avColor(n){return (allMembers[n]?.color)||gc(n);}
+function avContent(n){return (allMembers[n]?.emoji)||n.charAt(0);}
 
 // ── CHAT KING ──
 function renderChatRank(){
@@ -990,7 +1120,7 @@ function renderChatRank(){
     el.style.cursor='pointer';
     el.innerHTML=
       '<div class="ck-rank">'+(i===0?'<span class="ck-crown">👑</span>':(medals[i]||(i+1)))+'</div>'+
-      '<div class="ck-av" style="background:'+gc(n)+'">'+n.charAt(0)+'</div>'+
+      '<div class="ck-av" style="background:'+avColor(n)+'">'+avContent(n)+'</div>'+
       '<div class="ck-name">'+n+'</div>'+
       '<div class="ck-bar-wrap"><div class="ck-bar" style="width:'+(cnt/max*100).toFixed(0)+'%"></div></div>'+
       '<div class="ck-cnt">'+cnt+'</div>';
@@ -1050,7 +1180,7 @@ function renderGoals(){
       :'<span class="goal-badge-ing">진행중</span>';
     el.innerHTML=
       '<div class="goal-header">'+
-        '<div class="goal-name"><div class="goal-av" style="background:'+gc(n)+';cursor:pointer;" onclick="openProfileModal(\''+n+'\',null)">'+n.charAt(0)+'</div><span style="cursor:pointer;" onclick="openProfileModal(\''+n+'\',null)">'+n+'</span></div>'+
+        '<div class="goal-name"><div class="goal-av" style="background:'+avColor(n)+';cursor:pointer;" onclick="openProfileModal(\''+n+'\',null)">'+avContent(n)+'</div><span style="cursor:pointer;" onclick="openProfileModal(\''+n+'\',null)">'+n+'</span></div>'+
         badge+
       '</div>'+
       '<div class="goal-text">'+g.goal+'</div>'+
