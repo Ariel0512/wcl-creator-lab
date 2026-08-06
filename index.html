@@ -982,17 +982,23 @@ function renderLB(){
 }
 
 // ── MEMBER PROFILES ──
+function calcStreak(n){
+  let s=0,d=new Date();
+  while(true){const k=dk(d);if((allCerts[k]||{})[n]){s++;d.setDate(d.getDate()-1);}else break;}
+  return s;
+}
+
 function renderProfiles(){
   if(!ME) return;
   const mk=mkey(new Date());
   let cnt=0;
   Object.entries(allCerts).forEach(([k,dc])=>{if(k.startsWith(mk)&&dc[ME])cnt++;});
+  const streak=calcStreak(ME);
 
-  // 입단일 포맷
-  const memberData=allMembers[ME];
+  const mem=allMembers[ME]||{};
   let joinedStr='입단일 미등록';
-  if(memberData?.joinedAt){
-    const d=new Date(memberData.joinedAt);
+  if(mem.joinedAt){
+    const d=new Date(mem.joinedAt);
     joinedStr='입단일 '+d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
   }
 
@@ -1001,34 +1007,43 @@ function renderProfiles(){
   const badgeHTML=badges.map(b=>{
     if(b.type==='admin') return '<span class="badge badge-admin">'+b.label+'</span>';
     if(b.type==='chat')  return '<span class="badge badge-chat">'+b.label+'</span>';
-    if(b.type==='cert')  return '<span class="badge badge-cert">'+b.label+'</span>';if(b.type==='founding')return '<span class="badge badge-founding">'+b.label+'</span>';
+    if(b.type==='cert')  return '<span class="badge badge-cert">'+b.label+'</span>';
+    if(b.type==='founding') return '<span class="badge badge-founding">'+b.label+'</span>';
     return '<span class="badge badge-custom">'+b.label+'</span>';
   }).join('');
+
+  const msType=mem.membershipType||'월 구독';
+  const msPrice=mem.membershipPrice!=null?'₩'+Number(mem.membershipPrice).toLocaleString():'₩28,000';
+  const showMs=ME!=='국밥수달';
 
   const row=document.getElementById('profiles-row');
   row.innerHTML='';
   const card=document.createElement('div');
   card.className='profile-card me';
-  card.style.cursor='pointer';
+  card.style.cssText='cursor:pointer;position:relative;';
   card.innerHTML=
-    '<div class="pc-av" style="background:'+avColor(ME)+'">'+avContent(ME)+'</div>'+
+    '<div class="pc-av" style="background:'+avColor(ME)+';width:56px;height:56px;font-size:22px;align-self:flex-start;">'+avContent(ME)+'</div>'+
     '<div class="pc-info">'+
-      '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:3px;">'+
+      '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:2px;">'+
         '<span class="pc-name">'+ME+'</span>'+
         (badgeHTML?badgeHTML:'')+
-        '<span style="font-size:9px;color:var(--m);font-weight:600;">'+joinedStr+'</span>'+
       '</div>'+
-      (goal?'<div class="goal-quote" style="margin:6px 0 4px;padding:10px 14px;"><span class="goal-quote-text" style="font-size:15px;">'+goal.goal+'</span></div>':'<div class="pc-goal" style="color:var(--m);">목표를 등록해보세요!</div>')+
-      '<div class="pc-stat">이번달 <span>'+cnt+'</span>회 인증</div>'+
+      '<div style="font-size:9px;color:var(--m);font-weight:600;margin-bottom:6px;">'+joinedStr+'</div>'+
+      (mem.bio?'<div style="font-size:11px;color:#555;line-height:1.55;margin-bottom:6px;">'+mem.bio+'</div>':'')+
+      (mem.insta?'<div style="margin-bottom:6px;"><a href="'+mem.insta+'" target="_blank" style="font-size:11px;font-weight:700;color:var(--p);text-decoration:none;">📸 인스타그램 →</a></div>':'')+
+      '<div style="display:flex;gap:10px;margin-bottom:6px;">'+
+        '<div style="font-size:11px;color:var(--m);">이번달 <span style="font-family:Nunito,sans-serif;font-weight:900;color:var(--p);font-size:14px;">'+cnt+'</span>회 인증</div>'+
+        (streak>0?'<div style="font-size:11px;color:var(--m);">연속 <span style="font-family:Nunito,sans-serif;font-weight:900;color:var(--p);font-size:14px;">'+streak+'</span>일 🔥</div>':'')+
+      '</div>'+
+      (goal?'<div class="goal-quote" style="margin:4px 0;padding:10px 14px;"><span class="goal-quote-text" style="font-size:14px;">'+goal.goal+'</span></div>':'<div class="pc-goal" style="color:var(--m);">목표를 등록해보세요!</div>')+
+      (showMs?'<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1.5px solid var(--pb);border-radius:8px;padding:6px 12px;margin-top:6px;"><span style="font-size:10px;font-weight:700;color:var(--m);">💳 멤버십</span><span style="font-size:11px;font-weight:900;color:var(--p);">'+msType+' <span style="font-weight:700;color:var(--t);">'+msPrice+'</span></span></div>':'')+
     '</div>';
   card.onclick=()=>openProfileModal(ME,null);
 
-  // 꾸미기 버튼 (우측 하단)
   const editBtn=document.createElement('button');
   editBtn.textContent='✏️ 꾸미기';
   editBtn.style.cssText='position:absolute;right:14px;bottom:14px;background:var(--pl);color:var(--p);border:1px solid var(--pb);border-radius:8px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:"Noto Sans KR",sans-serif;';
   editBtn.onclick=(e)=>{e.stopPropagation();openProfileEdit();};
-  card.style.position='relative';
   card.appendChild(editBtn);
 
   row.appendChild(card);
@@ -1088,13 +1103,18 @@ function openProfileModal(n, certCounts){
   else if(goal) goalIcon.textContent='🔥';
   else goalIcon.textContent='—';
 
-  // 멤버십
+  // 멤버십 (국밥수달 제외)
   const msEl=document.getElementById('pm-membership');
   if(msEl){
-    const msType=mem?.membershipType||'월 구독';
-    const msPrice=mem?.membershipPrice!=null?'₩'+Number(mem.membershipPrice).toLocaleString():'₩28,000';
-    msEl.innerHTML='<span style="font-size:11px;font-weight:700;color:var(--m);">💳 멤버십</span>'+
-      '<span style="font-size:12px;font-weight:900;color:var(--p);">'+msType+' <span style="font-weight:700;color:var(--t);">'+msPrice+'</span></span>';
+    if(n==='국밥수달'){
+      msEl.style.display='none';
+    } else {
+      msEl.style.display='flex';
+      const msType=mem?.membershipType||'월 구독';
+      const msPrice=mem?.membershipPrice!=null?'₩'+Number(mem.membershipPrice).toLocaleString():'₩28,000';
+      msEl.innerHTML='<span style="font-size:11px;font-weight:700;color:var(--m);">💳 멤버십</span>'+
+        '<span style="font-size:12px;font-weight:900;color:var(--p);">'+msType+' <span style="font-weight:700;color:var(--t);">'+msPrice+'</span></span>';
+    }
   }
 
   document.getElementById('profile-modal').classList.add('open');
