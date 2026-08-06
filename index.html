@@ -1188,9 +1188,28 @@ function renderMemberList(){
       '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">'+
         '<div style="text-align:right;"><div style="font-family:Nunito,sans-serif;font-size:16px;font-weight:900;color:var(--p);">'+cnt+'</div><div style="font-size:9px;color:var(--m);">이번달</div></div>'+
         (ME==='국밥수달'?'<button onclick="event.stopPropagation();openMsEdit(\''+n+'\')" style="font-size:10px;padding:3px 8px;border-radius:7px;background:var(--pl);color:var(--p);border:1px solid var(--pb);cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;font-weight:700;">구독설정</button>':'')+
+        (ME==='국밥수달'&&n!=='국밥수달'?'<button onclick="event.stopPropagation();deleteMember(\''+n+'\')" style="font-size:10px;padding:3px 8px;border-radius:7px;background:transparent;color:#E74040;border:1px solid #FFBABA;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;font-weight:700;">삭제</button>':'')+
       '</div>';
     list.appendChild(row);
   });
+}
+
+// ── DELETE MEMBER (admin) ──
+function deleteMember(name){
+  if(!confirm('"'+name+'" 계정을 삭제할까요?\n프로필, 뱃지, 목표가 삭제됩니다.\n인증 내역은 유지됩니다.'))return;
+  const mk=mkey(new Date());
+  const tasks=[
+    db.ref('wcl/members/'+name).remove(),
+    db.ref('wcl/badges/'+name).remove(),
+    db.ref('wcl/goals/'+mk+'/'+name).remove(),
+    db.ref('wcl/chatcounts/'+mk+'/'+name).remove(),
+  ];
+  // memberlist 배열에서 제거
+  const newList=allMemberList.filter(n=>n!==name);
+  tasks.push(db.ref('wcl/memberlist').set(newList));
+  Promise.all(tasks)
+    .then(()=>toast(name+' 계정 삭제 완료'))
+    .catch(e=>toast('오류: '+e.message));
 }
 
 // ── MEMBERSHIP EDIT (admin) ──
