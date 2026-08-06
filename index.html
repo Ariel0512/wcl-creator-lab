@@ -659,6 +659,7 @@ function startDashboard(){
     renderGoals();
     renderLB();
     renderChatRank();
+    renderMemberList();
     if(selWeekDay) showDayPanel(selWeekDay, new Date(selWeekDay), false);
   });
 
@@ -669,6 +670,7 @@ function startDashboard(){
 
   db.ref('wcl/memberlist').on('value',snap=>{
     allMemberList=snap.val()||[];
+    renderMemberList();
   });
 }
 
