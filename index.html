@@ -48,12 +48,6 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
 
 /* WEEKLY */
 .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
-.cal-day{border-radius:8px;padding:5px 2px;text-align:center;font-size:11px;font-weight:700;border:1.5px solid var(--b);min-height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
-.cal-day.certified{background:var(--p);border-color:var(--p);color:white;}
-.cal-day.today{border-color:var(--p);color:var(--p);}
-.cal-day.today.certified{color:white;}
-.cal-day.empty{border-color:transparent;background:transparent;}
-.cal-day.future{color:#ccc;border-color:#eee;background:#fafafa;}
 .week-day{border-radius:10px;padding:10px 4px;text-align:center;border:1.5px solid var(--b);transition:all .2s;cursor:pointer;}
 .week-day:hover{border-color:var(--pb);background:var(--pl);}
 .week-day.today{border-color:var(--p);background:var(--pl);}
@@ -327,10 +321,21 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
       </div>
     </div>
 
-    <!-- MONTHLY CERT CALENDAR -->
+    <!-- PERSONAL CALENDAR -->
     <div class="card">
-      <div class="ctitle" id="cal-title">📆 8월 인증 달력</div>
-      <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:4px;"></div>
+      <div class="cal-hdr">
+        <h3 id="cal-h3">📆 내 인증 달력</h3>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button id="btn-add-sched" onclick="openSchedModal()" style="display:none;background:var(--p);color:white;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">+ 일정 추가</button>
+          <div class="cal-nav">
+            <button onclick="changeMonth(-1)">‹</button>
+            <button onclick="changeMonth(1)">›</button>
+          </div>
+        </div>
+      </div>
+      <div class="cal-stat" id="cal-stat"></div>
+      <div class="dow"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+      <div class="pgrid" id="pgrid"></div>
     </div>
 
     <!-- WEEKLY -->
@@ -350,23 +355,6 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
         <button id="btn-add-goal" onclick="openGoalModal()" style="background:var(--p);color:white;border:none;border-radius:7px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:none;">+ 내 목표 작성</button>
       </div>
       <div id="goal-list"><div style="font-size:13px;color:var(--m);text-align:center;padding:14px 0;">로딩 중...</div></div>
-    </div>
-
-    <!-- PERSONAL CALENDAR -->
-    <div class="card">
-      <div class="cal-hdr">
-        <h3 id="cal-h3">📆 내 인증 달력</h3>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <button id="btn-add-sched" onclick="openSchedModal()" style="display:none;background:var(--p);color:white;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">+ 일정 추가</button>
-          <div class="cal-nav">
-            <button onclick="changeMonth(-1)">‹</button>
-            <button onclick="changeMonth(1)">›</button>
-          </div>
-        </div>
-      </div>
-      <div class="cal-stat" id="cal-stat"></div>
-      <div class="dow"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
-      <div class="pgrid" id="pgrid"></div>
     </div>
 
   </div>
@@ -639,7 +627,7 @@ function startDashboard(){
     renderWeek();
     renderPersonalCal();
     renderLB();
-    renderCertCalendar();
+
   });
 
   db.ref('wcl/scheds').on('value',snap=>{
@@ -1413,39 +1401,6 @@ function submitAchieve(){
     .catch(e=>toast('오류: '+e.message));
 }
 
-// ── MONTHLY CERT CALENDAR ──
-function renderCertCalendar(){
-  const now=new Date();
-  const year=now.getFullYear(), month=now.getMonth();
-  document.getElementById('cal-title').textContent='📆 '+(month+1)+'월 인증 달력';
-  const firstDay=new Date(year,month,1).getDay(); // 0=일
-  const lastDate=new Date(year,month+1,0).getDate();
-  const todayDate=now.getDate();
-  const mk=mkey(now);
-
-  const grid=document.getElementById('cal-grid');
-  grid.innerHTML='';
-  const days=['일','월','화','수','목','금','토'];
-  days.forEach(d=>{
-    const h=document.createElement('div');
-    h.style.cssText='text-align:center;font-size:10px;font-weight:700;color:var(--m);padding:2px 0;';
-    h.textContent=d;
-    grid.appendChild(h);
-  });
-  for(let i=0;i<firstDay;i++){
-    const emp=document.createElement('div');emp.className='cal-day empty';grid.appendChild(emp);
-  }
-  for(let d=1;d<=lastDate;d++){
-    const dateStr=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    const certified=!!(allCerts[dateStr]&&allCerts[dateStr][ME]);
-    const isToday=d===todayDate;
-    const isFuture=d>todayDate;
-    const cell=document.createElement('div');
-    cell.className='cal-day'+(certified?' certified':'')+(isToday&&!certified?' today':'')+(isFuture?' future':'');
-    cell.innerHTML='<span>'+d+'</span>'+(certified?'<span style="font-size:9px;">✅</span>':'');
-    grid.appendChild(cell);
-  }
-}
 
 // ── CERT MODAL ──
 let certEditKey=null;
