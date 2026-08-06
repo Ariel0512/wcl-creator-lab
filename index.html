@@ -226,6 +226,7 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
 
 <header>
   <span class="logo">WCL <span>월드와이드 크리에이터 랩</span></span>
+  <span style="font-size:10px;color:var(--m);font-weight:600;letter-spacing:0.5px;">since 2026.07.13</span>
   <div class="hdr-r">
     <span class="date-txt" id="hdr-date"></span>
     <span class="user-chip" id="user-chip" title="클릭해서 닉네임 변경"></span>
@@ -573,11 +574,11 @@ function startDashboard(){
 
   db.ref('wcl/members').on('value',snap=>{
     allMembers=snap.val()||{};
-    renderProfiles();
-    // 내 입단일 자동 기록
+    // 내 입단일 자동 기록 (없을 때만)
     if(!allMembers[ME]){
       db.ref('wcl/members/'+ME).set({joinedAt:Date.now()});
     }
+    renderProfiles();
   });
 
   db.ref('wcl/badges').on('value',snap=>{
@@ -893,6 +894,14 @@ function renderProfiles(){
   let cnt=0;
   Object.entries(allCerts).forEach(([k,dc])=>{if(k.startsWith(mk)&&dc[ME])cnt++;});
 
+  // 입단일 포맷
+  const memberData=allMembers[ME];
+  let joinedStr='입단일 미등록';
+  if(memberData?.joinedAt){
+    const d=new Date(memberData.joinedAt);
+    joinedStr='입단일 '+d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
+  }
+
   const goal=allGoals[ME];
   const badges=allBadges[ME]||[];
   const badgeHTML=badges.map(b=>{
@@ -911,7 +920,7 @@ function renderProfiles(){
     '<div class="pc-av" style="background:'+gc(ME)+'">'+ME.charAt(0)+'</div>'+
     '<div class="pc-info">'+
       '<div class="pc-name">'+ME+'</div>'+
-      '<div class="pc-since">WCL since 2026.07.13</div>'+
+      '<div class="pc-since">'+joinedStr+'</div>'+
       (goal?'<div class="pc-goal">🎯 '+goal.goal+'</div>':'<div class="pc-goal" style="color:var(--m);">목표를 등록해보세요!</div>')+
       '<div class="pc-stat">이번달 <span>'+cnt+'</span>회 인증</div>'+
       (badgeHTML?'<div class="pc-badges" style="margin-top:5px;">'+badgeHTML+'</div>':'')+
@@ -940,7 +949,13 @@ function openProfileModal(n, certCounts){
   document.getElementById('pm-av').style.background=color;
   document.getElementById('pm-av').textContent=n.charAt(0);
   document.getElementById('pm-name').textContent=n;
-  document.getElementById('pm-since').textContent='WCL since 2026.07.13';
+  const mem=allMembers[n];
+  let joinStr='입단일 미등록';
+  if(mem?.joinedAt){
+    const jd=new Date(mem.joinedAt);
+    joinStr='입단일 '+jd.getFullYear()+'.'+String(jd.getMonth()+1).padStart(2,'0')+'.'+String(jd.getDate()).padStart(2,'0');
+  }
+  document.getElementById('pm-since').textContent=joinStr;
   document.getElementById('pm-cert-cnt').textContent=count;
   document.getElementById('pm-streak').textContent=streak+'일';
   document.getElementById('pm-badges').innerHTML=badges.map(b=>{
