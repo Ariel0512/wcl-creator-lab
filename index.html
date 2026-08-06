@@ -992,8 +992,11 @@ function renderProfiles(){
   card.innerHTML=
     '<div class="pc-av" style="background:'+avColor(ME)+'">'+avContent(ME)+'</div>'+
     '<div class="pc-info">'+
-      '<div class="pc-name">'+ME+(badgeHTML?' <span style="display:inline-flex;gap:3px;vertical-align:middle;">'+badgeHTML+'</span>':'')+'</div>'+
-      '<div class="pc-since">'+joinedStr+'</div>'+
+      '<div class="pc-name">'+ME+'</div>'+
+      '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:4px;">'+
+        (badgeHTML?badgeHTML:'')+
+        '<span style="font-size:9px;color:var(--m);font-weight:600;">'+joinedStr+'</span>'+
+      '</div>'+
       (goal?'<div class="pc-goal">🎯 '+goal.goal+'</div>':'<div class="pc-goal" style="color:var(--m);">목표를 등록해보세요!</div>')+
       '<div class="pc-stat">이번달 <span>'+cnt+'</span>회 인증</div>'+
     '</div>';
@@ -1274,7 +1277,7 @@ function renderGoals(){
         '<div class="goal-name"><div class="goal-av" style="background:'+avColor(n)+';cursor:pointer;" onclick="openProfileModal(\''+n+'\',null)">'+avContent(n)+'</div><span style="cursor:pointer;" onclick="openProfileModal(\''+n+'\',null)">'+n+'</span></div>'+
         badge+
       '</div>'+
-      '<div class="goal-text">'+g.goal+'</div>'+
+      '<div class="goal-quote"><span class="goal-quote-text">'+g.goal+'</span></div>'+
       (g.achieved&&g.proofUrl?'<a class="cf-link" href="'+g.proofUrl+'" target="_blank">🔗 달성 인증 보기</a>':'');
     if(isMe&&!g.achieved){
       const btn=document.createElement('button');
