@@ -587,7 +587,7 @@ function changeNick(){
     document.getElementById('user-chip').textContent='👤 '+ME;
     document.getElementById('btn-add-sched').style.display=ME==='국밥수달'?'block':'none';
     document.getElementById('btn-update-chat').style.display=ME==='국밥수달'?'block':'none';
-    document.getElementById('btn-member-list').style.display=(ME==='국밥수달'||ME==='이경민')?'block':'none';
+    document.getElementById('btn-member-list').style.display=ME==='국밥수달'?'block':'none';
     toast('닉네임 변경됐어요!');
   }
 }
@@ -614,7 +614,7 @@ function startDashboard(){
     document.getElementById('btn-add-sched').style.display='block';
     document.getElementById('btn-update-chat').style.display='block';
   }
-  if(ME==='국밥수달'||ME==='이경민'){
+  if(ME==='국밥수달'){
     document.getElementById('btn-member-list').style.display='block';
   }
   document.getElementById('btn-add-goal').style.display='block';
