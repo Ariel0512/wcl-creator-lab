@@ -245,7 +245,6 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
 
 <header>
   <span class="logo">WCL <span>월드와이드 크리에이터 랩</span></span>
-  <span style="font-size:10px;color:var(--m);font-weight:600;letter-spacing:0.5px;">since 2026.07.13</span>
   <div class="hdr-r">
     <span class="date-txt" id="hdr-date"></span>
     <button id="btn-member-list" onclick="openMemberList()" style="display:none;background:var(--pl);color:var(--p);border:1.5px solid var(--pb);border-radius:99px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">👥 멤버 리스트</button>
@@ -531,6 +530,8 @@ header{background:white;border-bottom:2px solid var(--p);padding:0 28px;height:5
 </div>
 
 <div class="toast" id="toast"></div>
+
+<footer style="text-align:center;padding:24px 16px;font-size:11px;color:var(--m);font-weight:600;letter-spacing:1px;">WCL · since 2026.07.13</footer>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -1030,7 +1031,7 @@ function renderProfiles(){
 
   const editBtn=document.createElement('button');
   editBtn.textContent='✏️ 꾸미기';
-  editBtn.style.cssText='position:absolute;right:14px;bottom:14px;background:var(--pl);color:var(--p);border:1px solid var(--pb);border-radius:8px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:"Noto Sans KR",sans-serif;';
+  editBtn.style.cssText='position:absolute;right:14px;top:14px;background:var(--pl);color:var(--p);border:1px solid var(--pb);border-radius:8px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:"Noto Sans KR",sans-serif;';
   editBtn.onclick=(e)=>{e.stopPropagation();openProfileEdit();};
   card.appendChild(editBtn);
 
