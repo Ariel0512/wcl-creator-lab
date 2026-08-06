@@ -1369,7 +1369,7 @@ function renderGoals(){
         el.appendChild(btn);
       } else {
         const btn=document.createElement('button');
-        btn.className='goal-btn';btn.style.cssText='background:#6BCB77;font-size:10px;';btn.textContent='✏️ 인증수정';
+        btn.className='goal-btn';btn.style.cssText='background:transparent;color:var(--m);border:1px solid var(--b);font-size:10px;';btn.textContent='✏️ 인증수정';
         btn.onclick=()=>openAchieveModal(n,true);
         el.appendChild(btn);
       }
